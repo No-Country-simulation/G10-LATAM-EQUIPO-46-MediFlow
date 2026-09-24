@@ -1,0 +1,13 @@
+RECETA MEDICA
+
+Paciente: Ana Lopez
+Edad: 34 años
+
+Medico:
+Dr. Roberto Perez
+
+Medicamento:
+Amoxicilina 500 mg
+
+Indicacion:
+1 capsula cada 8 horas durante 7 dias.

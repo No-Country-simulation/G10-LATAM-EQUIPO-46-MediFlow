@@ -1,0 +1,23 @@
+HOSPITAL SANTA LUCIA
+
+INFORME DE ESTUDIO RADIOLOGICO
+
+Paciente: Carlos Eduardo Mendes
+Edad: 52 años
+
+Medico Solicitante:
+Dra. Renata Silveira
+
+Estudio:
+Tomografia de torax con contraste.
+
+Indicacion:
+Sospecha de embolia pulmonar aguda.
+
+Hallazgos:
+Defecto de llenado en arteria pulmonar principal derecha
+compatible con TEP agudo.
+
+Conclusion:
+Cuadro compatible con Tromboembolismo Pulmonar Agudo.
+Se sugiere correlacion clinica urgente.
