@@ -259,9 +259,16 @@ seguridad, no un sustituto de mirar tu propio `git diff`.
 
 ## Ramas abiertas ahora
 
-| Rama | Qué trae | Estado |
-|------|----------|--------|
-| `docs/plan-github-pages` | Página del plan en GitHub Pages, `CONTRIBUTING.md`, este documento | por mergear primero |
-| `docs/1.1-readme-y-contrato` | README completo, `docs/CONTRATO.md`, `.gitignore` de la raíz | por mergear después |
+Las dos primeras están apiladas: la segunda sale de la primera y hay que
+mergearlas en ese orden. Las tres últimas salen de `main` y son independientes
+entre sí, así que pueden mergearse en cualquier orden.
+
+| Rama | Qué trae | Toca |
+|------|----------|------|
+| `docs/plan-github-pages` | Página del plan en GitHub Pages, `CONTRIBUTING.md` | `docs/` |
+| `docs/1.1-readme-y-contrato` | README completo, `docs/CONTRATO.md`, este documento, `.gitignore` de la raíz | `docs/`, raíz |
+| `docs/agente-corrige-categoria-y-diagrama` | Corrige `picrisis` y el diagrama inválido | `agente/README.md` |
+| `fix/agente-valida-salida-con-pydantic` | `AgentResult` en el camino real de los datos | `agente/src/`, `agente/tests/` |
+| `feat/contrato-capa-serializacion` | Traducción al contrato del enunciado | `agente/src/`, `agente/tests/` |
 
 Mantené esta tabla al día cuando abras o cierres una rama.
