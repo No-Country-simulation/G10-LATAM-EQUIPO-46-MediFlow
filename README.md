@@ -4,7 +4,7 @@ Sistema inteligente para el procesamiento, clasificación, extracción y triaje 
 
 **Hackathon ONE G10 — Oracle Next Education & Alura · Proyecto 2 · Equipo 46 (LATAM)**
 
-[Plan de ejecución de las cinco semanas](https://no-country-simulation.github.io/G10-LATAM-EQUIPO-46-MediFlow/) · [Contrato de la API](docs/CONTRATO.md) · [Cómo trabajamos](CONTRIBUTING.md)
+[Plan de ejecución de las cinco semanas](docs/index.html) · [Contrato de la API](docs/CONTRATO.md) · [Cómo trabajamos](CONTRIBUTING.md)
 
 ---
 
@@ -121,7 +121,8 @@ Actualmente se encuentra en desarrollo el **Sprint 1** del módulo **Agent**.
 
 El plan completo de las cinco semanas, con las tres entregas de cada una y el
 reparto entre los dos equipos, está en la
-**[página del plan de ejecución](https://no-country-simulation.github.io/G10-LATAM-EQUIPO-46-MediFlow/)**.
+**[página del plan de ejecución](docs/index.html)**, un archivo HTML que se
+abre con doble clic una vez que clonaste el repositorio.
 
 | Semana | Fechas          | Hito                      |
 |--------|-----------------|---------------------------|
@@ -177,7 +178,7 @@ documentación y demostración.
 | Recurso                  | Enlace |
 |--------------------------|--------|
 | Repositorio              | https://github.com/No-Country-simulation/G10-LATAM-EQUIPO-46-MediFlow |
-| Plan de ejecución        | https://no-country-simulation.github.io/G10-LATAM-EQUIPO-46-MediFlow/ |
+| Plan de ejecución        | [`docs/index.html`](docs/index.html) (se abre local) |
 | Tablero de trabajo       | *(completar)* |
 | Video demo               | *(completar, semana 5)* |
 | Despliegue               | *(completar)* |

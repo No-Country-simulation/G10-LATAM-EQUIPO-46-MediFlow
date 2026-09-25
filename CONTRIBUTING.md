@@ -18,7 +18,7 @@ para que nadie pise el trabajo de otro y para que el jueves haya algo que mostra
 |-------------------|---------|
 | Cómo nombro mi rama, y qué archivos me toca tocar | **[docs/RAMAS.md](docs/RAMAS.md)** |
 | Qué forma exacta tiene el JSON que devuelve la API | **[docs/CONTRATO.md](docs/CONTRATO.md)** |
-| Qué hay que entregar y cuándo | **[Plan de ejecución](https://no-country-simulation.github.io/G10-LATAM-EQUIPO-46-MediFlow/)** |
+| Qué hay que entregar y cuándo | **[docs/index.html](docs/index.html)** |
 | Cómo corro el agente en mi máquina | **[agente/README.md](agente/README.md)** |
 
 **[docs/RAMAS.md](docs/RAMAS.md) es la referencia completa de organización:**

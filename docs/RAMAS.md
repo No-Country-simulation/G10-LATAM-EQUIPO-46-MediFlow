@@ -259,16 +259,24 @@ seguridad, no un sustituto de mirar tu propio `git diff`.
 
 ## Ramas abiertas ahora
 
-Las dos primeras están apiladas: la segunda sale de la primera y hay que
-mergearlas en ese orden. Las tres últimas salen de `main` y son independientes
-entre sí, así que pueden mergearse en cualquier orden.
+Ninguna. Las cinco ramas del Sprint 1 se mergearon en los pull requests #1 a #4.
+
+Mantené esta tabla al día: cuando abras una rama, agregala acá con una línea que
+diga qué trae y qué módulo toca; cuando se mergee, borrala. Una rama que nadie
+anotó es una rama sobre la que otro va a trabajar sin saberlo.
 
 | Rama | Qué trae | Toca |
 |------|----------|------|
-| `docs/plan-github-pages` | Página del plan en GitHub Pages, `CONTRIBUTING.md` | `docs/` |
-| `docs/1.1-readme-y-contrato` | README completo, `docs/CONTRATO.md`, este documento, `.gitignore` de la raíz | `docs/`, raíz |
-| `docs/agente-corrige-categoria-y-diagrama` | Corrige `picrisis` y el diagrama inválido | `agente/README.md` |
-| `fix/agente-valida-salida-con-pydantic` | `AgentResult` en el camino real de los datos | `agente/src/`, `agente/tests/` |
-| `feat/contrato-capa-serializacion` | Traducción al contrato del enunciado | `agente/src/`, `agente/tests/` |
+| *(ninguna abierta)* | | |
 
-Mantené esta tabla al día cuando abras o cierres una rama.
+### Ya mergeadas
+
+| Rama | PR |
+|------|-----|
+| `docs/agente-corrige-categoria-y-diagrama` | #1 |
+| `docs/plan-github-pages` + `docs/1.1-readme-y-contrato` | #2 |
+| `fix/agente-valida-salida-con-pydantic` | #3 |
+| `feat/contrato-capa-serializacion` | #4 |
+
+Borralas del remoto cuando el PR esté mergeado: una rama mergeada que queda viva
+es una invitación a que alguien siga commiteando ahí por error.
