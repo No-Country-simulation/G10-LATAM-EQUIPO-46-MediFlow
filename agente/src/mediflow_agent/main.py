@@ -1,9 +1,9 @@
-import json
 import sys
 from pathlib import Path
 
 from mediflow_agent.classification.classifier import DocumentClassifier
 from mediflow_agent.extraction.extractor import DocumentExtractor
+from mediflow_agent.schemas.models import AgentResult
 
 
 def read_document(file_path: str) -> str:
@@ -20,7 +20,7 @@ def read_document(file_path: str) -> str:
 def process_document(
     document_id: str,
     document_text: str
-):
+) -> AgentResult:
     classifier = DocumentClassifier()
     extractor = DocumentExtractor()
 
@@ -36,11 +36,14 @@ def process_document(
 
     extracted_data = extractor.extract(document_text)
 
-    result = {
-        "document_id": document_id,
-        "classification": classification.model_dump(),
-        "extracted_data": extracted_data.model_dump(),
-    }
+    # Se arma el AgentResult en lugar de un dict suelto: asi la salida final
+    # pasa por la validacion de Pydantic igual que sus partes. Si el modelo
+    # devolviera algo que no respeta el esquema, falla aca y no rio abajo.
+    result = AgentResult(
+        document_id=document_id,
+        classification=classification,
+        extracted_data=extracted_data,
+    )
 
     return result
 
@@ -69,11 +72,7 @@ def main():
     print("\n========== RESULTADO ==========\n")
 
     print(
-        json.dumps(
-            result,
-            indent=2,
-            ensure_ascii=False
-        )
+        result.model_dump_json(indent=2)
     )
 
 
