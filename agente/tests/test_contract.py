@@ -2,7 +2,7 @@
 
 El caso de referencia es el ejemplo del enunciado: el informe de
 tromboembolismo pulmonar. Si estas pruebas pasan, la respuesta tiene la forma
-que el jurado va a comparar contra el PDF.
+que los examinadores van a comparar contra el PDF.
 """
 
 import json
