@@ -10,7 +10,6 @@ para que nadie pise el trabajo de otro y para que el jueves haya algo que mostra
    la Sprint Demo.
 2. **Una rama, una tarea, un pull request.** El nombre de la rama lleva el id de
    la tarea del cronograma: `feat/2.1-ingesta-pdf-imagen`.
-3. **Cada PR lo aprueba alguien que no lo escribió.**
 
 ## Dónde está cada cosa
 
@@ -33,9 +32,6 @@ tipo: que hace el cambio, en presente
 
 Ejemplos: `feat: endpoint de triaje que clasifica y persiste en OCI`,
 `fix: el clasificador ya no falla si falta la especialidad`.
-
-El enunciado pide explícitamente *"commits bien documentados"*. Un commit por
-idea; `cambios varios` no le sirve a nadie.
 
 ## Antes de abrir el pull request
 
