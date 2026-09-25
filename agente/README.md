@@ -7,17 +7,16 @@ Módulo de inteligencia artificial encargado del procesamiento y análisis de do
 El primer sprint implementa el núcleo inicial del agente mediante el siguiente flujo secuencial:
 
 ```mermaid
-graph TD
-    Documento de texto
-          ↓
-      Clasificación
-          ↓
-      Extracción
-          ↓
-    Validación Pydantic
-          ↓
-    JSON estructurado
+flowchart TD
+    A["Documento de texto"] --> B["Clasificacion"]
+    B --> C["Extraccion"]
+    C --> D["Validacion Pydantic"]
+    D --> E["JSON estructurado"]
 ```
+
+El grafo de decisión completo, con el enrutamiento a los cinco destinos, está en
+el [README de la raíz](../README.md#grafo-de-decisión-del-agente). Este diagrama
+muestra solo lo que el Sprint 1 implementa hoy.
 
 ## Tecnologías
 
@@ -34,7 +33,7 @@ Actualmente el clasificador reconoce estrictamente las siguientes categorías de
 * receta_medica
 * informe_estudio_diagnostico
 * orden_procedimiento
-* picrisis
+* epicrisis
 * certificado_medico
 * desconocido
 
