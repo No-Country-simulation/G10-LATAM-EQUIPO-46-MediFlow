@@ -1,0 +1,25 @@
+# Entornos y dependencias
+.venv/
+venv/
+__pycache__/
+*.pyc
+node_modules/
+
+# Credenciales: nunca, bajo ninguna circunstancia, en el repositorio
+.env
+*.env
+!.env.example
+oci_api_key.pem
+*.pem
+
+# Herramientas
+.pytest_cache/
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Documentos clinicos: el repositorio solo admite los ejemplos ficticios
+# versionados a proposito en agente/examples/
+/documentos/

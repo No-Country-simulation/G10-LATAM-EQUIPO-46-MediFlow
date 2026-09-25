@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MediFlow · Plan de ejecución</title>
+<meta name="description" content="Plan de ejecucion en cinco semanas del Equipo 46 - MediFlow, Hackathon ONE G10. Entrega: 27 de octubre de 2026.">
+<meta property="og:title" content="MediFlow - Plan de ejecucion">
+<meta property="og:description" content="Un agente que lee, decide y deriva documentos clinicos. Cronograma, frentes de trabajo y entregables del Equipo 46.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#EDF0F2; --papel2:#E3E8EB; --tarjeta:#F7F9FA;
+  --tinta:#12242E; --suave:#5B7280; --linea:#C6D1D7;
+  --teal:#0E6B70; --urgente:#B0302A; --ambar:#A97209; --rutina:#2C7A5C;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --papel:#0D1920; --papel2:#142129; --tarjeta:#16242C;
+  --tinta:#E4EBEF; --suave:#8EA4AF; --linea:#263A44;
+  --teal:#54B5AA; --urgente:#E4736A; --ambar:#DCA531; --rutina:#5DC193;}}
+:root[data-theme="dark"]{
+  --papel:#0D1920; --papel2:#142129; --tarjeta:#16242C;
+  --tinta:#E4EBEF; --suave:#8EA4AF; --linea:#263A44;
+  --teal:#54B5AA; --urgente:#E4736A; --ambar:#DCA531; --rutina:#5DC193;}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:calc(70px + env(safe-area-inset-top,0px));-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--papel);color:var(--tinta);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.6}
+h1,h2,h3{font-family:Bitter,Georgia,serif;font-weight:700;line-height:1.2;margin:0}
+a{color:var(--teal)}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:3px}
+code{font-size:.9em;background:var(--papel2);padding:1px 5px;border-radius:3px}
+.envoltura{max-width:920px;margin:0 auto;padding:0 20px}
+
+.barra{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;
+  background:color-mix(in srgb,var(--papel) 92%,transparent);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--linea)}
+.barra .envoltura{display:flex;align-items:center;gap:14px;min-height:56px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+.marca{font-family:Bitter;font-weight:700;font-size:17px}
+.marca span{color:var(--suave);font-family:"IBM Plex Sans";font-weight:500;font-size:12.5px;margin-left:8px}
+.medidor{margin-left:auto;display:flex;align-items:center;gap:9px;font-size:13px;color:var(--suave)}
+.riel{width:100px;height:6px;background:var(--papel2);border-radius:99px;overflow:hidden}
+.riel i{display:block;height:100%;width:0;background:var(--teal);transition:width .3s}
+
+.portada{padding:48px 0 4px}
+.portada h1{font-size:clamp(28px,5vw,44px);letter-spacing:-.02em;max-width:16ch}
+.entrada{margin:16px 0 0;max-width:62ch;font-size:16.5px;color:var(--suave)}
+
+.via{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin:32px 0 0;
+  border:1px solid var(--linea);border-radius:4px;overflow:hidden;background:var(--linea)}
+.tramo{background:var(--tarjeta);padding:13px;text-decoration:none;color:inherit;display:block}
+.tramo:hover{background:var(--papel2)}
+.tramo b{display:block;font-family:Bitter;font-size:13px;color:var(--teal)}
+.tramo em{display:block;font-style:normal;font-size:11.5px;color:var(--suave);margin:1px 0 7px}
+.tramo p{margin:0;font-size:13px;font-weight:500;line-height:1.35;min-height:2.6em}
+.tramo .mini{margin-top:9px;height:4px;background:var(--papel2);border-radius:99px;overflow:hidden}
+.tramo .mini i{display:block;height:100%;width:0;background:var(--teal);transition:width .3s}
+.tramo .cuenta{font-size:11.5px;color:var(--suave);margin-top:5px;display:block}
+@media(max-width:780px){.via{grid-template-columns:repeat(2,1fr)}.tramo p{min-height:0}}
+@media(max-width:440px){.via{grid-template-columns:1fr}}
+
+section{padding:40px 0 4px;scroll-margin-top:76px}
+section>h2{font-size:clamp(21px,3.2vw,27px);letter-spacing:-.015em}
+.sub{color:var(--suave);max-width:66ch;margin:9px 0 0;font-size:15px}
+.regla{height:1px;background:var(--linea);border:0;margin:36px 0 0}
+
+.rejilla{display:grid;gap:13px;margin-top:20px}
+.c2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:700px){.c2{grid-template-columns:1fr}}
+.tarjeta{background:var(--tarjeta);border:1px solid var(--linea);border-radius:4px;padding:15px}
+.tarjeta h3{font-size:15.5px;margin-bottom:5px}
+.tarjeta p{margin:0;font-size:14px;color:var(--suave)}
+.clave{font-family:Bitter;font-size:12px;color:var(--teal);display:block;margin-bottom:2px}
+.tarjeta.riesgo{border-left:3px solid var(--urgente)}
+.tarjeta.riesgo h3{font-size:14.5px;font-family:"IBM Plex Sans";font-weight:600}
+
+.aviso{border-left:3px solid var(--ambar);background:var(--tarjeta);padding:13px 15px;
+  border-radius:0 4px 4px 0;margin:20px 0;font-size:14.5px}
+.aviso b{font-weight:600}
+
+.semana{margin-top:22px;border:1px solid var(--linea);border-radius:4px;background:var(--tarjeta);overflow:hidden}
+.cabecera{padding:14px 16px;border-bottom:1px solid var(--linea);background:var(--papel2)}
+.cabecera h3{font-size:17.5px}
+.cabecera .fechas{font-size:12.5px;color:var(--suave);margin-top:2px}
+.cabecera .obj{margin:8px 0 0;font-size:14.5px;max-width:70ch}
+.bloque{padding:4px 16px 12px}
+.tarea{display:flex;gap:11px;align-items:flex-start;padding:10px 0;
+  border-bottom:1px solid color-mix(in srgb,var(--linea) 55%,transparent)}
+.tarea:last-child{border-bottom:0}
+.tarea input{appearance:none;width:17px;height:17px;min-width:17px;margin-top:3px;
+  border:1.5px solid var(--suave);border-radius:3px;cursor:pointer;background:transparent;position:relative}
+.tarea input:checked{background:var(--teal);border-color:var(--teal)}
+.tarea input:checked::after{content:"";position:absolute;left:5px;top:1px;width:4px;height:9px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.tarea label{flex:1;cursor:pointer;font-size:14.5px;line-height:1.45}
+.tarea.lista label{color:var(--suave);text-decoration:line-through;text-decoration-thickness:1px}
+.eq{font-size:11.5px;color:var(--suave);border:1px solid var(--linea);border-radius:99px;padding:1px 7px;margin-left:7px;white-space:nowrap}
+
+pre.mermaid{background:var(--tarjeta);border:1px solid var(--linea);border-radius:4px;
+  padding:16px;overflow-x:auto;margin-top:20px;text-align:center}
+
+.esc{border-left:3px solid var(--linea);padding-left:15px;margin-top:18px}
+.esc.u{border-color:var(--urgente)}.esc.r{border-color:var(--rutina)}.esc.h{border-color:var(--ambar)}
+.esc h3{font-size:15.5px}
+.esc p{margin:5px 0 0;font-size:14.5px;color:var(--suave);max-width:68ch}
+
+ul.limpia{list-style:none;padding:0;margin:14px 0 0}
+ul.limpia li{padding:8px 0 8px 20px;position:relative;border-bottom:1px solid var(--linea);font-size:14.5px}
+ul.limpia li:last-child{border-bottom:0}
+ul.limpia li::before{content:"";position:absolute;left:3px;top:16px;width:6px;height:6px;border-radius:50%;background:var(--teal)}
+
+footer{border-top:1px solid var(--linea);margin-top:44px;padding:22px 0 40px;color:var(--suave);font-size:13.5px}
+footer button{font:inherit;font-size:13px;background:transparent;border:1px solid var(--linea);
+  color:var(--suave);border-radius:3px;padding:5px 11px;cursor:pointer;margin-top:10px}
+footer button:hover{color:var(--urgente);border-color:var(--urgente)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="barra"><div class="envoltura">
+  <div class="marca">MediFlow<span>Equipo 46 · Hackathon ONE G10</span></div>
+  <div class="medidor"><span id="txtTotal">0 / 0</span><div class="riel"><i id="rielTotal"></i></div></div>
+</div></div>
+
+<main class="envoltura">
+
+<div class="portada">
+  <h1>Un agente que lee, decide y deriva documentos clínicos</h1>
+  <p class="entrada">Plan de ejecución en cinco semanas para ocho personas. Tres entregas por semana, un hito por sprint y una fecha final: <b>27 de octubre de 2026</b>.</p>
+  <div class="via" id="via"></div>
+</div>
+
+<section id="entregables">
+  <h2>Qué hay que entregar</h2>
+  <p class="sub">Cuatro entregables obligatorios de la hackathon, todos con fecha límite el 27 de octubre. Se cargan de forma incremental: no esperen a la última semana.</p>
+  <ul class="limpia">
+    <li><b>Documentación del proyecto.</b> Información y enlaces en Markdown. Es el README del repositorio.</li>
+    <li><b>Video demo.</b> Enlace de YouTube con la demostración de los tres escenarios.</li>
+    <li><b>Herramientas del equipo.</b> Selección de tecnologías utilizadas.</li>
+    <li><b>Enlaces del proyecto.</b> Repositorio, despliegue y tablero de trabajo.</li>
+  </ul>
+  <div class="aviso">
+    Repositorio del equipo: <a href="https://github.com/No-Country-simulation/G10-LATAM-EQUIPO-46-MediFlow">G10-LATAM-EQUIPO-46-MediFlow</a>. Todo entregable vive ahí primero y desde ahí se copia al formulario.
+  </div>
+</section>
+
+<hr class="regla">
+
+<section id="ritmo">
+  <h2>Ritmo de cada semana</h2>
+  <ul class="limpia">
+    <li><b>Lunes.</b> Sprint Planning en Discord. Se reparten las tres tareas de la semana entre los dos equipos.</li>
+    <li><b>Todos los días.</b> Estado breve en el canal: qué hice, qué sigo, qué me bloquea.</li>
+    <li><b>Jueves.</b> Sprint Demo en Discord. Cada equipo muestra algo que funciona, aunque esté sin terminar.</li>
+    <li><b>Durante la semana.</b> Subir el avance al repositorio y actualizar el documento de entregables.</li>
+  </ul>
+</section>
+
+<hr class="regla">
+
+<section id="equipos">
+  <h2>Dos equipos</h2>
+  <p class="sub">Ocho personas repartidas en dos frentes de cuatro. Cada equipo tiene un referente que responde por la integración y desbloquea al resto.</p>
+  <div class="rejilla c2">
+    <div class="tarjeta">
+      <span class="clave">Equipo A</span>
+      <h3>Agente e inteligencia</h3>
+      <p>Todo lo que ocurre entre que llega un documento y sale una decisión: ingesta de PDF e imagen, clasificación, extracción de datos clínicos, puntaje de confianza, detección de urgencia y grafo de enrutamiento.</p>
+    </div>
+    <div class="tarjeta">
+      <span class="clave">Equipo B</span>
+      <h3>Plataforma y producto</h3>
+      <p>Todo lo que rodea al agente: API, almacenamiento en OCI, interfaz de triaje y panel de auditoría humana, documentos de prueba, pruebas automatizadas, documentación y demostración.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="regla">
+
+<section id="grafo">
+  <h2>El grafo de decisión</h2>
+  <p class="sub">La forma del agente. Sirve de contrato entre los dos equipos y es el diagrama que pide el enunciado para el README.</p>
+<pre class="mermaid">
+flowchart TD
+  A["Ingesta: PDF, imagen o texto"] --&gt; B["Normalizacion, OCR y rasterizado"]
+  B --&gt; C["Clasificacion del tipo de documento"]
+  C --&gt;|"Desconocido o ilegible"| U["Cola de Emergencia Medica"]
+  C --&gt; D["Extraccion estructurada segun el tipo"]
+  D --&gt; E["Validacion de consistencia clinica"]
+  E --&gt; F["Score de confianza y deteccion de urgencia"]
+  F --&gt; G{"Decision de enrutamiento"}
+  G --&gt;|"Hallazgo critico"| U
+  G --&gt;|"Confianza bajo el umbral"| H["Cola de Revision Humana"]
+  G --&gt;|"Receta validada"| FA["Farmacia Hospitalaria"]
+  G --&gt;|"Orden de procedimiento"| AU["Auditoria de Autorizaciones"]
+  G --&gt;|"Informe o epicrisis"| HC["Historia Clinica Electronica"]
+  U --&gt; P["Persistencia en OCI y notificacion"]
+  H --&gt; P
+  FA --&gt; P
+  AU --&gt; P
+  HC --&gt; P
+</pre>
+  <div class="aviso">
+    <b>Dos reglas que no se negocian.</b> Primera: ante cualquier duda, fallo del modelo o documento ilegible, el caso escala a una persona; nunca a aprobación automática. Segunda: si un dato no está en el documento, el campo va en <code>null</code> y baja la confianza. Un código CIE-10 inventado es peor que un campo vacío.
+  </div>
+</section>
+
+<hr class="regla">
+
+<section id="frentes">
+  <h2>Cuatro frentes de trabajo</h2>
+  <div class="rejilla c2" id="frentes"></div>
+</section>
+
+<hr class="regla">
+
+<section id="cronograma">
+  <h2>Cronograma</h2>
+  <p class="sub">Tres entregas por semana. Marquen las casillas a medida que avanzan; el progreso se guarda en este navegador.</p>
+  <div id="semanas"></div>
+</section>
+
+<hr class="regla">
+
+<section id="requisitos">
+  <h2>Verificación final contra el enunciado</h2>
+  <p class="sub">Los siete requisitos mínimos del documento del hackathon. Se revisan completos en la semana 5, antes de entregar.</p>
+  <div class="semana"><div class="bloque" id="reqmin"></div></div>
+</section>
+
+<hr class="regla">
+
+<section id="demo">
+  <h2>Los tres escenarios de la demostración</h2>
+  <p class="sub">El enunciado exige mostrar tres casos distintos. Fíjenlos desde ya y úsenlos como prueba de aceptación en cada sprint, no los dejen para el final.</p>
+  <div class="esc r"><h3>1 · Flujo estándar aprobado</h3>
+    <p>Una orden de estudio de laboratorio ambulatoria, legible y completa. El agente clasifica, extrae, obtiene confianza alta, deriva a Auditoría de Autorizaciones sin intervención humana y deja el objeto en <code>procesados/rutina/</code>.</p></div>
+  <div class="esc u"><h3>2 · Prioridad de urgencia médica</h3>
+    <p>El informe de tromboembolismo pulmonar del propio enunciado. Prioridad urgente, ruta a Cola de Emergencia Médica, notificación al canal de guardia y objeto en <code>procesados/urgentes/</code>. Muestren la justificación del enrutamiento en pantalla: es lo que demuestra que el agente razona y no solo extrae.</p></div>
+  <div class="esc h"><h3>3 · Caso ambiguo derivado a auditoría humana</h3>
+    <p>Una foto de receta manuscrita con la dosis ilegible. Confianza baja, campos en <code>null</code>, ruta a Cola de Revisión Humana y objeto en <code>auditoria_humana/</code>. Cierren el círculo en vivo: el auditor corrige el campo, aprueba y el documento sigue hacia Farmacia.</p></div>
+</section>
+
+<hr class="regla">
+
+<section id="riesgos">
+  <h2>Los cuatro riesgos que hunden este proyecto</h2>
+  <p class="sub">No son todos los riesgos posibles, sino los que más veces matan un proyecto de cinco semanas. Cada uno con lo que hay que hacer desde ahora para evitarlo.</p>
+  <div class="rejilla c2" id="riesgos"></div>
+</section>
+
+<footer class="envoltura">
+  <p>Las fechas asumen inicio el 21 de septiembre y entrega el 27 de octubre de 2026. Los umbrales de confianza y las estimaciones son propuestas iniciales, no valores medidos: ajústenlos con datos propios desde la semana 4.</p>
+  <button id="reiniciar">Reiniciar el checklist</button>
+</footer>
+
+</main>
+
+<script>
+(function(){
+"use strict";
+
+var FRENTES=[
+ ["F1","Comprensión del documento","Ingesta de PDF, imagen y texto; normalización; clasificación del tipo de documento y extracción estructurada de los datos clínicos con esquemas validados."],
+ ["F2","Decisión y enrutamiento","Validación de consistencia, puntaje de confianza, detección de urgencia y el grafo con sus aristas condicionales y rutas de contingencia."],
+ ["F3","Plataforma","API de triaje, almacenamiento segregado en OCI Object Storage, interfaz de envío y panel de auditoría humana."],
+ ["F4","Calidad y entrega","Corpus sintético etiquetado, pruebas, medición de exactitud, documentación, video demo y los cuatro entregables obligatorios."]
+];
+
+var SEMANAS=[
+{n:1,f:"21 – 27 sep",res:"Esqueleto vivo",
+ obj:"Que un documento entre por la API, el modelo lo clasifique y el resultado quede guardado en OCI. Feo e incompleto, pero funcionando entero de punta a punta.",
+ t:[
+  ["1.1","Repositorio ordenado y documentación inicial: README con problema, arquitectura, grafo de decisión, stack y equipo.","B","F4"],
+  ["1.2","Bucket de OCI creado en capa Always Free, con los prefijos por estado y una prueba de subida y descarga desde Python.","B","F3"],
+  ["1.3","Endpoint de triaje que recibe el JSON del enunciado, clasifica el documento con el modelo elegido y guarda el resultado en el bucket.","A","F1"]
+ ]},
+{n:2,f:"28 sep – 4 oct",res:"Lee cualquier formato",
+ obj:"El sistema deja de depender de texto plano. Entra un PDF escaneado o una foto y sale un objeto estructurado y validado, y ya se puede medir qué tan bien lo hace.",
+ t:[
+  ["2.1","Ingesta de PDF nativo, PDF escaneado e imagen, todo normalizado a una única representación interna.","A","F1"],
+  ["2.2","Extracción estructurada por tipo de documento con esquemas tipados, campos nulos cuando el dato no está y CIE-10 verificado contra un catálogo local.","A","F1"],
+  ["2.3","Corpus de treinta documentos sintéticos etiquetados y script que reporta exactitud de clasificación y cobertura de campos.","B","F4"]
+ ]},
+{n:3,f:"5 – 11 oct",res:"El agente decide",
+ obj:"La semana del corazón del proyecto. Si algo se atrasa, que se atrase de los diferenciales, nunca de aquí.",
+ t:[
+  ["3.1","Grafo de decisión completo con los cinco destinos, la justificación escrita de cada ruta y las contingencias ante fallo del modelo o documento ilegible.","A","F2"],
+  ["3.2","Puntaje de confianza y detección de urgencia por doble vía, con umbrales configurables desde archivo.","A","F2"],
+  ["3.3","Respuesta completa del endpoint conforme al contrato del enunciado, con persistencia en el prefijo que corresponde a la decisión.","B","F3"]
+ ]},
+{n:4,f:"12 – 18 oct",res:"Producto y panel humano",
+ obj:"Se cierra la interfaz, se mide de verdad y se calibra. El jueves se congela el alcance: desde ahí, solo correcciones.",
+ t:[
+  ["4.1","Interfaz de triaje y panel de auditoría: bandeja de baja confianza, documento original junto a los datos extraídos, y corrección y aprobación por clic.","B","F3"],
+  ["4.2","Evaluación sobre el corpus completo, calibración de los umbrales y pruebas de casos borde.","A","F4"],
+  ["4.3","Congelamiento de alcance el jueves, más un diferencial elegido: reglas configurables, despliegue en OCI Compute, alertas con n8n o lectura de manuscritos.","A","F2"]
+ ]},
+{n:5,f:"19 – 25 oct",res:"Entrega",
+ obj:"Semana sin código nuevo. Corregir, ensayar y entregar. Reserven la mitad del tiempo para imprevistos.",
+ t:[
+  ["5.1","Corrección de defectos e instalación desde cero en una máquina limpia siguiendo solo el README.","A","F4"],
+  ["5.2","Video demo de los tres escenarios grabado, editado y subido a YouTube.","B","F4"],
+  ["5.3","Los cuatro entregables obligatorios cargados y verificados antes del 27 de octubre.","B","F4"]
+ ]}
+];
+
+var REQMIN=[
+ ["Q1","Ingestión funcional de documentos clínicos en texto o PDF e imagen."],
+ ["Q2","Clasificación automática del tipo de documento con modelos de lenguaje o multimodalidad."],
+ ["Q3","Extracción precisa de datos clínicos esenciales en formato estructurado."],
+ ["Q4","Lógica de decisión condicional con manejo de casos ambiguos o urgentes."],
+ ["Q5","Integración activa con OCI Object Storage en capa Always Free, con segregación por estado."],
+ ["Q6","Demostración de al menos tres escenarios: rutina, urgencia y ambigüedad derivada a revisión humana."],
+ ["Q7","Documentación completa en el repositorio, con el diagrama del flujo del agente."]
+];
+
+var RIESGOS=[
+ ["Un hallazgo urgente se clasifica como rutina","Es el peor fallo posible: un informe crítico que nadie ve a tiempo. Detección por regla y por modelo a la vez, sesgo explícito a escalar ante la duda, y una métrica dedicada de falsos negativos en la evaluación de la semana 4."],
+ ["Se agota la cuota gratuita del modelo","Configuren una clave secundaria desde la semana 1, guarden en caché la respuesta de cada documento ya procesado y usen un modelo simulado en todas las pruebas automatizadas."],
+ ["Las piezas funcionan sueltas pero no juntas","Es lo que mata a la mayoría de los equipos. Por eso la semana 1 cierra el esqueleto entero aunque sea pobre, y el contrato JSON se acuerda antes de escribir cada módulo."],
+ ["La demostración falla el día de la presentación","Video de respaldo grabado en la semana 5, datos de prueba precargados y una ejecución guardada en caché lista para mostrar si se cae la red."]
+];
+
+var LLAVE="mediflow-plan-v2";
+var estado={};
+try{var c=localStorage.getItem(LLAVE);if(c)estado=JSON.parse(c)||{};}catch(e){estado={};}
+function guardar(){try{localStorage.setItem(LLAVE,JSON.stringify(estado));}catch(e){}}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+document.getElementById("frentes").innerHTML=FRENTES.map(function(f){
+  return '<div class="tarjeta"><span class="clave">'+f[0]+'</span><h3>'+esc(f[1])+'</h3><p>'+esc(f[2])+'</p></div>';}).join("");
+
+document.getElementById("riesgos").innerHTML=RIESGOS.map(function(r){
+  return '<div class="tarjeta riesgo"><h3>'+esc(r[0])+'</h3><p>'+esc(r[1])+'</p></div>';}).join("");
+
+function fila(id,txt,eq,marca){
+  return '<div class="tarea'+(estado[id]?" lista":"")+'" data-id="'+id+'">'+
+    '<input type="checkbox" id="'+id+'"'+(estado[id]?" checked":"")+'>'+
+    '<label for="'+id+'">'+esc(txt)+(eq?'<span class="eq">Equipo '+eq+'</span>':'')+'</label></div>';
+}
+
+document.getElementById("semanas").innerHTML=SEMANAS.map(function(s){
+  return '<div class="semana" id="semana'+s.n+'">'+
+    '<div class="cabecera"><h3>Semana '+s.n+' · '+esc(s.res)+'</h3>'+
+    '<div class="fechas">'+s.f+'</div><p class="obj">'+esc(s.obj)+'</p></div>'+
+    '<div class="bloque">'+s.t.map(function(t){return fila("s"+s.n+"-"+t[0],t[1],t[2]);}).join("")+
+    '</div></div>';}).join("");
+
+document.getElementById("reqmin").innerHTML=REQMIN.map(function(q){
+  return fila("req-"+q[0],q[1],null);}).join("");
+
+document.getElementById("via").innerHTML=SEMANAS.map(function(s){
+  return '<a class="tramo" href="#semana'+s.n+'" data-via="'+s.n+'"><b>Semana '+s.n+'</b>'+
+    '<em>'+s.f+'</em><p>'+esc(s.res)+'</p><div class="mini"><i></i></div>'+
+    '<span class="cuenta">0 / '+s.t.length+'</span></a>';}).join("");
+
+function actualizar(){
+  var cajas=document.querySelectorAll('input[type="checkbox"]'),tot=cajas.length,h=0;
+  Array.prototype.forEach.call(cajas,function(c){if(c.checked)h++;});
+  document.getElementById("txtTotal").textContent=h+" / "+tot;
+  document.getElementById("rielTotal").style.width=(tot?Math.round(h/tot*100):0)+"%";
+  SEMANAS.forEach(function(s){
+    var cs=document.getElementById("semana"+s.n).querySelectorAll('input[type="checkbox"]'),k=0;
+    Array.prototype.forEach.call(cs,function(c){if(c.checked)k++;});
+    var t=document.querySelector('[data-via="'+s.n+'"]');
+    t.querySelector(".mini i").style.width=(cs.length?Math.round(k/cs.length*100):0)+"%";
+    t.querySelector(".cuenta").textContent=k+" / "+cs.length;
+  });
+}
+
+document.addEventListener("change",function(ev){
+  var c=ev.target;if(!c||c.type!=="checkbox")return;
+  var f=c.closest(".tarea");if(!f)return;
+  if(c.checked)estado[f.dataset.id]=true;else delete estado[f.dataset.id];
+  f.classList.toggle("lista",c.checked);guardar();actualizar();
+});
+
+document.getElementById("reiniciar").addEventListener("click",function(){
+  if(!confirm("Se desmarcan todas las tareas de este navegador. ¿Continuar?"))return;
+  estado={};guardar();
+  Array.prototype.forEach.call(document.querySelectorAll('input[type="checkbox"]'),function(c){c.checked=false;});
+  Array.prototype.forEach.call(document.querySelectorAll(".tarea"),function(f){f.classList.remove("lista");});
+  actualizar();
+});
+
+actualizar();
+})();
+</script>
+
+<script type="module">
+  // El visor de artifacts de Claude renderiza Mermaid de forma nativa;
+  // GitHub Pages no. Sin este bloque, el grafo de decision se ve como
+  // texto plano. Si el CDN falla, el bloque queda legible igual.
+  try {
+    const { default: mermaid } = await import(
+      "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs"
+    );
+    const oscuro = window.matchMedia("(prefers-color-scheme: dark)").matches
+      && document.documentElement.getAttribute("data-theme") !== "light";
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "strict",
+      theme: oscuro ? "dark" : "neutral",
+      flowchart: { useMaxWidth: true, htmlLabels: false }
+    });
+  } catch (err) {
+    console.warn("No se pudo cargar Mermaid; el grafo queda como texto.", err);
+  }
+</script>
+</body>
+</html>
