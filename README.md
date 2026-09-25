@@ -161,14 +161,14 @@ de enrutamiento.
 almacenamiento en OCI, interfaz de triaje, panel de auditoría, pruebas,
 documentación y demostración.
 
-| Nombre | GitHub | Equipo |
-|--------|--------|--------|
+| Nombre        | GitHub                        | Equipo |
+|---------------|-------------------------------|--------|
+| Neri Ferreira | https://github.com/nfexcelsis |   A    |
 | *(completar)* | *(completar)* | A |
 | *(completar)* | *(completar)* | A |
 | *(completar)* | *(completar)* | A |
-| *(completar)* | *(completar)* | A |
-| *(completar)* | *(completar)* | B |
-| *(completar)* | *(completar)* | B |
+| Eddy Mujica   | *(completar)* | B |
+| Danilo Loaiza | *(completar)* | B |
 | *(completar)* | *(completar)* | B |
 | *(completar)* | *(completar)* | B |
 
@@ -184,7 +184,4 @@ documentación y demostración.
 
 ## Datos y Descargo de Responsabilidad
 
-El prototipo utiliza **datos ficticios** para las pruebas. **No debe utilizarse bajo ninguna circunstancia como sustituto de una evaluación, diagnóstico o decisión médica profesional.**
-
-Los documentos de `agente/examples/` no contienen información real de pacientes. No
-subas al repositorio ningún documento clínico real, ni siquiera anonimizado.
+El prototipo utiliza **datos ficticios** para las pruebas.
