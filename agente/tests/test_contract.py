@@ -115,6 +115,41 @@ def test_un_pdf_puede_llegar_sin_documento_texto():
     assert solicitud.documento_texto is None
 
 
+def test_una_imagen_puede_llegar_sin_documento_texto():
+    solicitud = SolicitudTriaje(
+        documento_id="DOC-1",
+        tipo_archivo="IMAGEN",
+        canal_origen="Recepcion",
+    )
+
+    assert solicitud.documento_texto is None
+
+
+@pytest.mark.parametrize("documento_texto", [None, "", "   "])
+def test_un_texto_requiere_contenido_no_vacio(documento_texto):
+    with pytest.raises(
+        ValidationError,
+        match="documento_texto es obligatorio cuando tipo_archivo es TEXTO",
+    ):
+        SolicitudTriaje(
+            documento_id="DOC-1",
+            tipo_archivo="TEXTO",
+            documento_texto=documento_texto,
+            canal_origen="Recepcion",
+        )
+
+
+def test_un_texto_con_contenido_es_valido():
+    solicitud = SolicitudTriaje(
+        documento_id="DOC-1",
+        tipo_archivo="TEXTO",
+        documento_texto="RECETA MEDICA",
+        canal_origen="Recepcion",
+    )
+
+    assert solicitud.documento_texto == "RECETA MEDICA"
+
+
 # ---------------------------------------------------------------------------
 # Traduccion al contrato
 # ---------------------------------------------------------------------------
