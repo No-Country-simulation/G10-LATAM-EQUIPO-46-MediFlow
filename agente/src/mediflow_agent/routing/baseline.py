@@ -24,6 +24,7 @@ regla y, cuando dispara, no hay ruta que la anule.
 import os
 import unicodedata
 
+from mediflow_agent.ingestion.base import DocumentoNormalizado
 from mediflow_agent.schemas.models import ClassificationResult, ExtractedData
 from mediflow_agent.serialization.contract import (
     DecisionEnrutamientoContrato,
@@ -68,6 +69,11 @@ TERMINOS_CRITICOS = (
 )
 
 # Destino por tipo de documento, segun el grafo de decision del README.
+# Marca que el transcriptor multimodal deja donde no pudo leer. Su presencia
+# significa que hay un dato del documento que NADIE leyo: ni el modelo ni,
+# todavia, una persona. En una receta puede ser la dosis.
+MARCA_ILEGIBLE = "[ilegible]"
+
 DESTINO_POR_TIPO: dict[str, DestinoEnrutamiento] = {
     "receta_medica": "Farmacia_Hospitalaria",
     "orden_procedimiento": "Auditoria_Autorizaciones",
@@ -106,6 +112,7 @@ def decidir_enrutamiento(
     datos: ExtractedData,
     canal_origen: str,
     umbral_confianza: float = UMBRAL_CONFIANZA,
+    documento: DocumentoNormalizado | None = None,
 ) -> tuple[NivelPrioridad, DecisionEnrutamientoContrato, StatusTriaje]:
     """Decide prioridad, destino y estado del triaje.
 
@@ -143,7 +150,27 @@ def decidir_enrutamiento(
             "procesado",
         )
 
-    # ---- 2. Documento desconocido o ilegible. -----------------------------
+    # ---- 2. Transcripcion con partes ilegibles. ---------------------------
+    # Va despues de la urgencia (un hallazgo critico legible se atiende aunque
+    # el resto del documento este borroso) y antes de la ruta por tipo: una
+    # receta con la dosis ilegible NO puede ir a farmacia sola.
+    if documento is not None and MARCA_ILEGIBLE in documento.texto:
+        return (
+            "Prioritario" if canal_prioritario else "Rutina",
+            DecisionEnrutamientoContrato(
+                destino_principal="Cola_Revision_Humana",
+                requiere_auditoria_humana=True,
+                justificacion_enrutamiento=(
+                    "La transcripcion del documento dejo partes ilegibles. Se "
+                    "deriva a un auditor humano para que complete los datos "
+                    "faltantes antes de cualquier accion."
+                ),
+                notificacion_generada=None,
+            ),
+            "derivado_revision_humana",
+        )
+
+    # ---- 3. Documento desconocido o ilegible. -----------------------------
     # El grafo del proyecto deriva este caso a la Cola de Emergencia Medica, no
     # a la de revision comun: un documento que no se pudo ni clasificar puede
     # ser cualquier cosa, incluido un hallazgo critico, y la cola de emergencia
@@ -171,7 +198,7 @@ def decidir_enrutamiento(
             "derivado_revision_humana",
         )
 
-    # ---- 3. Confianza por debajo del umbral. ------------------------------
+    # ---- 4. Confianza por debajo del umbral. ------------------------------
     if clasificacion.confidence < umbral_confianza:
         return (
             "Prioritario" if canal_prioritario else "Rutina",
@@ -188,7 +215,7 @@ def decidir_enrutamiento(
             "derivado_revision_humana",
         )
 
-    # ---- 4. Ruta normal por tipo de documento. ----------------------------
+    # ---- 5. Ruta normal por tipo de documento. ----------------------------
     destino = DESTINO_POR_TIPO.get(clasificacion.document_type)
 
     if destino is None:

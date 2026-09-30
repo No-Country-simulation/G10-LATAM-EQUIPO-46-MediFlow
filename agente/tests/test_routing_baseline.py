@@ -25,13 +25,15 @@ def _datos(**campos):
     return ExtractedData(**base)
 
 
-def _decidir(clasificacion=None, datos=None, canal="Recepcion", umbral=0.70):
+def _decidir(clasificacion=None, datos=None, canal="Recepcion", umbral=0.70,
+             documento=None):
     return decidir_enrutamiento(
         documento_id="DOC-1",
         clasificacion=clasificacion or _clasificacion(),
         datos=datos or _datos(),
         canal_origen=canal,
         umbral_confianza=umbral,
+        documento=documento,
     )
 
 
@@ -190,3 +192,46 @@ def test_la_justificacion_nunca_viene_vacia():
     ):
         _, decision, _ = _decidir(**caso)
         assert decision.justificacion_enrutamiento.strip()
+
+
+# --- Transcripciones con partes ilegibles ---------------------------------
+
+def _transcrito(texto):
+    from mediflow_agent.ingestion.base import DocumentoNormalizado
+
+    return DocumentoNormalizado(texto=texto, origen="imagen")
+
+
+def test_una_receta_con_la_dosis_ilegible_no_va_sola_a_farmacia():
+    # Escenario 3 del enunciado. Con confianza alta la ruta seria farmacia;
+    # el [ilegible] tiene que frenarla.
+    _, decision, status = _decidir(
+        clasificacion=_clasificacion(tipo="receta_medica", confianza=0.95),
+        documento=_transcrito("Amoxicilina [ilegible] mg cada 8 horas"),
+    )
+
+    assert decision.destino_principal == "Cola_Revision_Humana"
+    assert decision.requiere_auditoria_humana is True
+    assert status == "derivado_revision_humana"
+
+
+def test_un_hallazgo_critico_legible_se_atiende_aunque_el_resto_sea_ilegible():
+    # La urgencia corre antes que la regla de ilegibilidad: si el hallazgo se
+    # leyo, enterrarlo en la bandeja de revision comun seria el peor resultado.
+    prioridad, decision, _ = _decidir(
+        datos=_datos(conclusion="Tromboembolismo pulmonar agudo"),
+        documento=_transcrito("Paciente [ilegible]. CONCLUSION: TEP agudo."),
+    )
+
+    assert prioridad == "Urgente"
+    assert decision.destino_principal == "Cola_Emergencia_Medica"
+
+
+def test_una_transcripcion_limpia_sigue_su_ruta_normal():
+    _, decision, status = _decidir(
+        clasificacion=_clasificacion(tipo="receta_medica", confianza=0.95),
+        documento=_transcrito("Amoxicilina 500 mg cada 8 horas"),
+    )
+
+    assert decision.destino_principal == "Farmacia_Hospitalaria"
+    assert status == "procesado"
