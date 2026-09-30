@@ -18,7 +18,7 @@ documento.
 
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from mediflow_agent.schemas.models import AgentResult, DocumentType
 
@@ -97,6 +97,18 @@ class SolicitudTriaje(BaseModel):
             "'Guardia_Emergencias' es una senal de prioridad, no una prueba."
         )
     )
+
+    @model_validator(mode="after")
+    def validar_texto_requerido(self) -> "SolicitudTriaje":
+        """Exige contenido cuando el documento llega como texto."""
+        if self.tipo_archivo == "TEXTO" and (
+            self.documento_texto is None or not self.documento_texto.strip()
+        ):
+            raise ValueError(
+                "documento_texto es obligatorio cuando tipo_archivo es TEXTO"
+            )
+
+        return self
 
 
 # ---------------------------------------------------------------------------
