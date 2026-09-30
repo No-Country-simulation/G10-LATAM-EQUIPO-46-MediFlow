@@ -77,17 +77,72 @@ Para correr el script principal, debes indicarle a Python dónde encontrar el c�
   python -m mediflow_agent.main examples/informe.txt
   ```
 
-### Ejecución de las Pruebas Unitarias
-Para correr la suite de pruebas automatizadas con `pytest`:
+### 5. Levantar la API de triaje
 
-* **En CMD:**
-  ```cmd
-  set PYTHONPATH=src&& pytest
-  ```
-* **En PowerShell o usando el atajo nativo de Python:**
-  ```bash
-  python -m pytest
-  ```
+```bash
+uvicorn mediflow_agent.api.app:app --reload --app-dir src
+```
+
+Queda en `http://127.0.0.1:8000`. La documentación interactiva está en
+`http://127.0.0.1:8000/docs`: desde ahí se puede pegar el JSON del enunciado y
+ver la respuesta completa sin escribir una sola línea de código.
+
+Dos endpoints:
+
+| Método | Ruta | Para qué |
+|--------|------|----------|
+| `GET`  | `/salud` | Comprobar que el servicio está arriba. No llama al modelo ni gasta cuota. |
+| `POST` | `/triaje` | Procesa un documento y devuelve la decisión de triaje. |
+
+Prueba rápida con el caso del enunciado:
+
+```bash
+curl -X POST http://127.0.0.1:8000/triaje ^
+  -H "Content-Type: application/json" ^
+  -d "{\"documento_id\":\"DOC-CLIN-2026-8942\",\"tipo_archivo\":\"TEXTO\",\"documento_texto\":\"CONCLUSION: Cuadro compatible con Tromboembolismo Pulmonar Agudo.\",\"canal_origen\":\"Guardia_Emergencias\"}"
+```
+
+El formato exacto de entrada y salida está en
+[`docs/CONTRATO.md`](../docs/CONTRATO.md).
+
+#### Dónde se guardan los documentos
+
+Mientras no exista el bucket de OCI (tarea 1.2), la persistencia va a disco con
+**exactamente la misma estructura de prefijos** que tendrá el bucket:
+
+```
+.almacen/
+  recibidos/              el documento tal como llego
+  procesados/rutina/      confianza alta, ruta automatica
+  procesados/urgentes/    hallazgo critico o prioridad urgente
+  auditoria_humana/       confianza baja o documento ambiguo
+```
+
+Esto **no reemplaza a OCI**, que el enunciado exige como requisito obligatorio.
+Es lo que permite que el endpoint funcione de punta a punta mientras tanto.
+Cuando exista el bucket, se agrega una implementación de
+`AlmacenamientoDocumentos` y se cambia una sola función en `api/app.py`.
+
+Dos variables opcionales:
+
+```env
+MEDIFLOW_ALMACEN_LOCAL=.almacen
+MEDIFLOW_BUCKET=mediflow-documentos-clinicos
+MEDIFLOW_UMBRAL_CONFIANZA=0.70
+```
+
+### Ejecución de las Pruebas Unitarias
+
+```bash
+python -m pytest
+```
+
+`pytest.ini` ya pone `src/` en la ruta de importación, así que no hace falta
+exportar `PYTHONPATH` a mano.
+
+Las pruebas **no llaman a Gemini**: el modelo se sustituye por dobles. Corren
+en menos de un segundo y no consumen cuota, que es la contramedida al riesgo
+de quedarse sin llamadas gratuitas a mitad de la semana.
 
 ## Reglas Importantes del Agente
 
