@@ -41,8 +41,8 @@ flowchart TD
   D --> E["Validacion de consistencia clinica"]
   E --> F["Score de confianza y deteccion de urgencia"]
   F --> G{"Decision de enrutamiento"}
-  G -->|"Hallazgo critico"| U
-  G -->|"Confianza bajo el umbral"| H["Cola de Revision Humana"]
+  G -->|"Hallazgo critico"| U["Cola de Emergencia Medica"]
+  G -->|"Confianza bajo el umbral"| H
   G -->|"Receta validada"| FA["Farmacia Hospitalaria"]
   G -->|"Orden de procedimiento"| AU["Auditoria de Autorizaciones"]
   G -->|"Informe o epicrisis"| HC["Historia Clinica Electronica"]
