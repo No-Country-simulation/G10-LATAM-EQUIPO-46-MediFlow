@@ -182,6 +182,3 @@ documentación y demostración.
 | Video demo               | *(completar, semana 5)* |
 | Despliegue               | *(completar)* |
 
-## Datos y Descargo de Responsabilidad
-
-El prototipo utiliza **datos ficticios** para las pruebas.

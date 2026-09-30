@@ -175,6 +175,3 @@ Para garantizar la seguridad y fiabilidad clínica, el comportamiento del Agente
 4. **Validación estricta:** Validar los tipos y límites de todas las estructuras mediante Pydantic (ej. confianza entre 0 y 1).
 5. **Alcance de Codificación:** Tratar `suggested_icd10` únicamente como una sugerencia automatizada y jamás como un diagnóstico definitivo.
 
-## 🔬 Datos de Prueba
-
-Los documentos incluidos en la carpeta `examples/` contienen exclusivamente **datos ficticios** destinados al desarrollo y pruebas del prototipo. No contienen información real de pacientes ni deben usarse con fines comerciales.

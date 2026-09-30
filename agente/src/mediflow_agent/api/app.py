@@ -43,9 +43,7 @@ app = FastAPI(
     version="0.2.0",
     description=(
         "Agente autonomo para triaje, extraccion y enrutamiento de documentos "
-        "clinicos. Hackathon ONE G10, Equipo 46.\n\n"
-        "**Prototipo con datos ficticios. No debe usarse como sustituto de una "
-        "evaluacion, diagnostico o decision medica profesional.**"
+        "clinicos. Hackathon ONE G10, Equipo 46."
     ),
 )
 
