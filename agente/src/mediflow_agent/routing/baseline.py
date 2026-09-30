@@ -171,29 +171,27 @@ def decidir_enrutamiento(
         )
 
     # ---- 3. Documento desconocido o ilegible. -----------------------------
-    # El grafo del proyecto deriva este caso a la Cola de Emergencia Medica, no
-    # a la de revision comun: un documento que no se pudo ni clasificar puede
-    # ser cualquier cosa, incluido un hallazgo critico, y la cola de emergencia
-    # es la que tiene un humano mirando mas rapido.
+    # Va a la Cola de Revision Humana, no a la de Emergencia. No poder
+    # clasificar un documento no es evidencia de que sea urgente: la urgencia
+    # ya se evaluo en el paso 1 sobre el texto que si se pudo leer. Mandar cada
+    # fax borroso a la cola de emergencia la llenaria de casos que no lo son, y
+    # una cola de emergencia saturada deja de mirarse con urgencia.
+    #
+    # Se marca como Prioritario para que quede arriba en la bandeja de
+    # revision, y requiere_auditoria_humana en True: nunca se aprueba solo.
     if clasificacion.document_type == "desconocido":
         return (
             "Prioritario",
             DecisionEnrutamientoContrato(
-                destino_principal="Cola_Emergencia_Medica",
+                destino_principal="Cola_Revision_Humana",
                 requiere_auditoria_humana=True,
                 justificacion_enrutamiento=(
                     "No se pudo determinar el tipo de documento. Se escala a "
-                    "revision humana inmediata en lugar de asignar una ruta "
-                    "automatica, porque un documento sin clasificar puede "
-                    "contener un hallazgo critico no detectado."
+                    "un auditor humano en lugar de asignar una ruta "
+                    "automatica, con prioridad alta dentro de la cola de "
+                    "revision."
                 ),
-                notificacion_generada=NotificacionContrato(
-                    canal="Alerta_Guardia_Medica",
-                    mensaje=(
-                        f"Documento {documento_id} sin clasificar. Requiere "
-                        "revision humana para descartar contenido urgente."
-                    ),
-                ),
+                notificacion_generada=None,
             ),
             "derivado_revision_humana",
         )

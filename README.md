@@ -36,7 +36,7 @@ confianza. Un código CIE-10 inventado es peor que un campo vacío.
 flowchart TD
   A["Ingesta: PDF, imagen o texto"] --> B["Normalizacion, OCR y rasterizado"]
   B --> C["Clasificacion del tipo de documento"]
-  C -->|"Desconocido o ilegible"| U["Cola de Emergencia Medica"]
+  C -->|"Desconocido o ilegible"| H["Cola de Revision Humana"]
   C --> D["Extraccion estructurada segun el tipo"]
   D --> E["Validacion de consistencia clinica"]
   E --> F["Score de confianza y deteccion de urgencia"]

@@ -103,9 +103,32 @@ def test_un_documento_desconocido_escala_y_no_se_aprueba_solo():
     )
 
     assert decision.requiere_auditoria_humana is True
-    assert decision.destino_principal == "Cola_Emergencia_Medica"
+    assert decision.destino_principal == "Cola_Revision_Humana"
     assert status == "derivado_revision_humana"
+    # Prioritario, no Rutina: queda arriba en la bandeja de revision.
     assert prioridad == "Prioritario"
+
+
+def test_un_documento_desconocido_no_satura_la_cola_de_emergencia():
+    # No poder clasificar un documento no es evidencia de urgencia. La urgencia
+    # ya se evaluo sobre el texto que si se leyo. Si cada fax borroso fuera a
+    # emergencia, la cola dejaria de mirarse con urgencia.
+    _, decision, _ = _decidir(clasificacion=_clasificacion(tipo="desconocido"))
+
+    assert decision.destino_principal != "Cola_Emergencia_Medica"
+    assert decision.notificacion_generada is None
+
+
+def test_un_desconocido_con_hallazgo_critico_si_va_a_emergencia():
+    # La urgencia corre antes: si el texto legible traia un hallazgo critico,
+    # va a emergencia aunque el tipo de documento no se haya podido determinar.
+    prioridad, decision, _ = _decidir(
+        clasificacion=_clasificacion(tipo="desconocido"),
+        datos=_datos(findings="Sospecha de sepsis"),
+    )
+
+    assert prioridad == "Urgente"
+    assert decision.destino_principal == "Cola_Emergencia_Medica"
 
 
 # --- Confianza ------------------------------------------------------------

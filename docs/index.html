@@ -191,7 +191,7 @@ footer button:hover{color:var(--urgente);border-color:var(--urgente)}
 flowchart TD
   A["Ingesta: PDF, imagen o texto"] --&gt; B["Normalizacion, OCR y rasterizado"]
   B --&gt; C["Clasificacion del tipo de documento"]
-  C --&gt;|"Desconocido o ilegible"| U["Cola de Emergencia Medica"]
+  C --&gt;|"Desconocido o ilegible"| H["Cola de Revision Humana"]
   C --&gt; D["Extraccion estructurada segun el tipo"]
   D --&gt; E["Validacion de consistencia clinica"]
   E --&gt; F["Score de confianza y deteccion de urgencia"]
