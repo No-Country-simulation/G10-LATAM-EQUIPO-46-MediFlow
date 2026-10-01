@@ -140,15 +140,31 @@ Mientras no exista el bucket de OCI (tarea 1.2), la persistencia va a disco con
 ```
 
 Para usar OCI Object Storage, que es lo que exige el enunciado, se cambia una
-variable:
+variable. Hay dos formas:
+
+**Con un Pre-Authenticated Request (PAR).** Es lo más rápido: no hace falta
+usuario, ni clave de API, ni acceso a la consola. Solo el enlace.
+
+```env
+MEDIFLOW_ALMACEN=par
+MEDIFLOW_OCI_PAR=https://objectstorage.<region>.oraclecloud.com/p/.../o/
+```
+
+> **Ese enlace es la credencial.** Quien lo tenga puede leer y escribir en el
+> bucket. No va al repositorio ni a un canal público, y **caduca** en la fecha
+> que se eligió al crearlo.
+
+**Con credenciales IAM propias.** Es la vía normal y no caduca.
 
 ```env
 MEDIFLOW_ALMACEN=oci
 MEDIFLOW_BUCKET=nombre-del-bucket
 ```
 
-y se completan las credenciales de OCI del `.env.example`. Ni el endpoint ni el
-servicio se enteran de cuál de los dos almacenes está en uso.
+más las variables `OCI_*` del `.env.example`.
+
+Ni el endpoint ni el servicio se enteran de cuál de los tres almacenes está en
+uso.
 
 #### Verificar la conexión con OCI
 

@@ -54,12 +54,13 @@ def obtener_almacenamiento() -> AlmacenamientoDocumentos:
     Este es el unico lugar del sistema que sabe que existen dos almacenes. Ni
     el servicio ni los endpoints se enteran de cual esta en uso.
 
-      MEDIFLOW_ALMACEN=oci     -> OCI Object Storage (lo que pide el enunciado)
+      MEDIFLOW_ALMACEN=oci     -> OCI con credenciales IAM (la via normal)
+      MEDIFLOW_ALMACEN=par     -> OCI con un Pre-Authenticated Request
       MEDIFLOW_ALMACEN=local   -> disco, para desarrollo y demo sin red
 
     El valor por defecto es "local" a proposito: sin credenciales de OCI la
-    aplicacion arranca igual y el equipo puede trabajar. Elegir "oci" sin
-    configuracion valida falla al arrancar, no a mitad de un triaje.
+    aplicacion arranca igual y el equipo puede trabajar. Elegir "oci" o "par"
+    sin configuracion valida falla al arrancar, no a mitad de un triaje.
     """
     nombre_bucket = os.getenv("MEDIFLOW_BUCKET", "mediflow-documentos-clinicos")
     destino = os.getenv("MEDIFLOW_ALMACEN", "local").strip().lower()
@@ -69,9 +70,16 @@ def obtener_almacenamiento() -> AlmacenamientoDocumentos:
 
         return AlmacenamientoOci(nombre_bucket=nombre_bucket)
 
+    if destino == "par":
+        from mediflow_agent.storage.oci_par import AlmacenamientoOciPar
+
+        # El nombre del bucket sale del propio PAR, asi que no se pasa.
+        return AlmacenamientoOciPar()
+
     if destino != "local":
         raise ValueError(
-            f"MEDIFLOW_ALMACEN={destino!r} no es valido. Use 'oci' o 'local'."
+            f"MEDIFLOW_ALMACEN={destino!r} no es valido. "
+            "Use 'oci', 'par' o 'local'."
         )
 
     raiz = os.getenv("MEDIFLOW_ALMACEN_LOCAL", ".almacen")
