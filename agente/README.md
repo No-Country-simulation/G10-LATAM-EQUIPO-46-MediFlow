@@ -139,10 +139,36 @@ Mientras no exista el bucket de OCI (tarea 1.2), la persistencia va a disco con
   auditoria_humana/       confianza baja o documento ambiguo
 ```
 
-Esto **no reemplaza a OCI**, que el enunciado exige como requisito obligatorio.
-Es lo que permite que el endpoint funcione de punta a punta mientras tanto.
-Cuando exista el bucket, se agrega una implementación de
-`AlmacenamientoDocumentos` y se cambia una sola función en `api/app.py`.
+Para usar OCI Object Storage, que es lo que exige el enunciado, se cambia una
+variable:
+
+```env
+MEDIFLOW_ALMACEN=oci
+MEDIFLOW_BUCKET=nombre-del-bucket
+```
+
+y se completan las credenciales de OCI del `.env.example`. Ni el endpoint ni el
+servicio se enteran de cuál de los dos almacenes está en uso.
+
+#### Verificar la conexión con OCI
+
+```bash
+python scripts/verificar_oci.py
+```
+
+Sube un objeto de prueba a los cuatro prefijos, lo vuelve a leer y compara el
+contenido. Es la prueba de subida y descarga que pide la tarea 1.2. Si algo
+falla, dice qué revisar en lugar de mostrar una traza.
+
+#### Obtener las credenciales
+
+En la consola de OCI: **perfil → My profile → API keys → Add API key**. Al
+generarla, OCI muestra un bloque de configuración con el OCID del usuario, el
+de la tenancy y el fingerprint, y descarga un archivo `.pem` con la clave
+privada.
+
+> **El `.pem` nunca va al repositorio.** El `.gitignore` lo bloquea, pero la
+> red de seguridad no reemplaza mirar tu propio `git diff`.
 
 Dos variables opcionales:
 

@@ -49,15 +49,32 @@ app = FastAPI(
 
 
 def obtener_almacenamiento() -> AlmacenamientoDocumentos:
-    """Construye el almacen configurado.
+    """Construye el almacen segun MEDIFLOW_ALMACEN.
 
-    Hoy siempre devuelve el almacen en disco. Cuando exista el bucket de OCI
-    (tarea 1.2), este es el unico lugar que hay que tocar: se elige una
-    implementacion u otra segun la configuracion, y ni el servicio ni los
-    endpoints se enteran.
+    Este es el unico lugar del sistema que sabe que existen dos almacenes. Ni
+    el servicio ni los endpoints se enteran de cual esta en uso.
+
+      MEDIFLOW_ALMACEN=oci     -> OCI Object Storage (lo que pide el enunciado)
+      MEDIFLOW_ALMACEN=local   -> disco, para desarrollo y demo sin red
+
+    El valor por defecto es "local" a proposito: sin credenciales de OCI la
+    aplicacion arranca igual y el equipo puede trabajar. Elegir "oci" sin
+    configuracion valida falla al arrancar, no a mitad de un triaje.
     """
-    raiz = os.getenv("MEDIFLOW_ALMACEN_LOCAL", ".almacen")
     nombre_bucket = os.getenv("MEDIFLOW_BUCKET", "mediflow-documentos-clinicos")
+    destino = os.getenv("MEDIFLOW_ALMACEN", "local").strip().lower()
+
+    if destino == "oci":
+        from mediflow_agent.storage.oci_storage import AlmacenamientoOci
+
+        return AlmacenamientoOci(nombre_bucket=nombre_bucket)
+
+    if destino != "local":
+        raise ValueError(
+            f"MEDIFLOW_ALMACEN={destino!r} no es valido. Use 'oci' o 'local'."
+        )
+
+    raiz = os.getenv("MEDIFLOW_ALMACEN_LOCAL", ".almacen")
 
     return AlmacenamientoLocal(Path(raiz), nombre_bucket=nombre_bucket)
 
