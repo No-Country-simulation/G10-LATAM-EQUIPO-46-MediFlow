@@ -20,6 +20,8 @@ from mediflow_agent.extraction.esquemas_por_tipo import (
     ESQUEMA_POR_TIPO,
     a_datos_comunes,
 )
+from mediflow_agent.config import variable
+from mediflow_agent.modelos import MODELO_POR_DEFECTO
 from mediflow_agent.schemas.models import ExtractedData
 from mediflow_agent.validacion.cie10 import depurar
 
@@ -94,13 +96,13 @@ class ExtractorPorTipo:
 
         from langchain_google_genai import ChatGoogleGenerativeAI
 
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = variable("GEMINI_API_KEY")
 
         if not api_key:
             raise ValueError("No se encontro GEMINI_API_KEY en el archivo .env")
 
         self._llm = ChatGoogleGenerativeAI(
-            model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+            model=variable("GEMINI_MODEL", MODELO_POR_DEFECTO),
             google_api_key=api_key,
             temperature=0,
         )

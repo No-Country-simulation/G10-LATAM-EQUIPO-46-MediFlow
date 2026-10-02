@@ -26,6 +26,7 @@ import logging
 import os
 from typing import Any
 
+from mediflow_agent.config import variable
 from mediflow_agent.storage.base import AlmacenamientoDocumentos, ObjetoGuardado
 
 _log = logging.getLogger(__name__)
@@ -52,12 +53,12 @@ def _configuracion_desde_entorno() -> dict[str, Any] | None:
     falla mas tarde y con un mensaje peor.
     """
     requeridas = {
-        "user": os.getenv("OCI_USER_OCID"),
-        "tenancy": os.getenv("OCI_TENANCY_OCID"),
-        "fingerprint": os.getenv("OCI_FINGERPRINT"),
-        "region": os.getenv("OCI_REGION"),
+        "user": variable("OCI_USER_OCID"),
+        "tenancy": variable("OCI_TENANCY_OCID"),
+        "fingerprint": variable("OCI_FINGERPRINT"),
+        "region": variable("OCI_REGION"),
     }
-    clave = os.getenv("OCI_PRIVATE_KEY")
+    clave = variable("OCI_PRIVATE_KEY")
 
     if not all(requeridas.values()) or not clave:
         return None
@@ -72,7 +73,7 @@ def _configuracion_desde_entorno() -> dict[str, Any] | None:
     else:
         configuracion["key_file"] = clave
 
-    if passphrase := os.getenv("OCI_PASSPHRASE"):
+    if passphrase := variable("OCI_PASSPHRASE"):
         configuracion["pass_phrase"] = passphrase
 
     return configuracion
@@ -94,7 +95,7 @@ class AlmacenamientoOci(AlmacenamientoDocumentos):
         """
         import oci  # import local: el SDK solo hace falta si se usa OCI
 
-        self._bucket = nombre_bucket or os.getenv(
+        self._bucket = nombre_bucket or variable(
             "MEDIFLOW_BUCKET", NOMBRE_BUCKET_POR_DEFECTO
         )
 
@@ -106,8 +107,8 @@ class AlmacenamientoOci(AlmacenamientoDocumentos):
             if configuracion is None:
                 try:
                     configuracion = oci.config.from_file(
-                        file_location=os.getenv("OCI_CONFIG_FILE", "~/.oci/config"),
-                        profile_name=os.getenv("OCI_CONFIG_PROFILE", "DEFAULT"),
+                        file_location=variable("OCI_CONFIG_FILE", "~/.oci/config"),
+                        profile_name=variable("OCI_CONFIG_PROFILE", "DEFAULT"),
                     )
                 except (
                     oci.exceptions.ConfigFileNotFound,
@@ -131,7 +132,7 @@ class AlmacenamientoOci(AlmacenamientoDocumentos):
 
         # El namespace identifica la tenancy y no cambia nunca. Se consulta una
         # sola vez al arrancar en lugar de en cada operacion.
-        self._namespace = namespace or os.getenv("OCI_NAMESPACE") or self._obtener_namespace()
+        self._namespace = namespace or variable("OCI_NAMESPACE") or self._obtener_namespace()
 
     def _obtener_namespace(self) -> str:
         try:

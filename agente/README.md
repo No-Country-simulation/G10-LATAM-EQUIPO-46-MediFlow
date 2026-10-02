@@ -61,7 +61,7 @@ pip install -r requirements.txt
 Crea un archivo llamado `.env` en la raíz de este módulo y define tus credenciales:
 ```env
 GEMINI_API_KEY=TU_API_KEY
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=
 ```
 
 ### 4. Ejecutar el agente

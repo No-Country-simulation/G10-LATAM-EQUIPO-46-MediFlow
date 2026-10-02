@@ -19,11 +19,11 @@ la via normal. Este modulo existe para no quedar bloqueados mientras tanto.
 """
 
 import logging
-import os
 import re
 from typing import Any
 from urllib.parse import quote
 
+from mediflow_agent.config import variable
 from mediflow_agent.storage.base import AlmacenamientoDocumentos, ObjetoGuardado
 
 _log = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class ErrorDeConfiguracionPar(Exception):
 class AlmacenamientoOciPar(AlmacenamientoDocumentos):
 
     def __init__(self, url_par: str | None = None, sesion: Any = None):
-        url_par = (url_par or os.getenv("MEDIFLOW_OCI_PAR", "")).strip()
+        url_par = (url_par or variable("MEDIFLOW_OCI_PAR", "")).strip()
 
         if not url_par:
             raise ErrorDeConfiguracionPar(
