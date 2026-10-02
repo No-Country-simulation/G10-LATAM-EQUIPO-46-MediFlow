@@ -23,3 +23,7 @@ Thumbs.db
 # Documentos clinicos: el repositorio solo admite los ejemplos ficticios
 # versionados a proposito en agente/examples/
 /documentos/
+
+# Almacen local de documentos: es el sustituto temporal del bucket de OCI y
+# contiene documentos procesados. Nunca va al repositorio.
+.almacen/
