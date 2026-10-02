@@ -162,16 +162,16 @@ de enrutamiento.
 almacenamiento en OCI, interfaz de triaje, panel de auditoría, pruebas,
 documentación y demostración.
 
-| Nombre        | GitHub                        | Equipo |
-|---------------|-------------------------------|--------|
-| Neri Ferreira | https://github.com/nfexcelsis |   A    |
-| *(completar)* | *(completar)* | A |
-| *(completar)* | *(completar)* | A |
-| *(completar)* | *(completar)* | A |
-| Eddy Mujica   | *(completar)* | B |
-| Danilo Loaiza | *(completar)* | B |
-| *(completar)* | *(completar)* | B |
-| *(completar)* | *(completar)* | B |
+| Nombre | Rol | GitHub | Equipo |
+|--------|-----|--------|--------|
+| Eddy Daniel Mujica Ramirez | Autonomous Agent Engineer | [@EdMRamirez](https://github.com/EdMRamirez) | A |
+| Alex Danilo Loaiza Gomezcuello | Data analyst | [@Danloa7890](https://github.com/Danloa7890) | A |
+| Cristina Torrico | Data analyst | *(completar)* | A |
+| Neri Ferreira | Full Stack Developer | [@nfexcelsis](https://github.com/nfexcelsis) | A |
+| Diana Palacios | Software Engineer | *(completar)* | B |
+| Cristian Emanuel Ceron Franco | Backend Developer | *(completar)* | B |
+| Nicole Fernandez | Full Stack Developer | *(completar)* | B |
+| Alejandro Gonzalez Ugalde | UX/UI Designer | [@Alex25008441-STEM](https://github.com/Alex25008441-STEM) | B |
 
 ## Enlaces del proyecto
 
@@ -179,7 +179,6 @@ documentación y demostración.
 |--------------------------|--------|
 | Repositorio              | https://github.com/No-Country-simulation/G10-LATAM-EQUIPO-46-MediFlow |
 | Plan de ejecución        | [`docs/index.html`](docs/index.html) (se abre local) |
-| Tablero de trabajo       | *(completar)* |
 | Video demo               | *(completar, semana 5)* |
 | Despliegue               | *(completar)* |
 
