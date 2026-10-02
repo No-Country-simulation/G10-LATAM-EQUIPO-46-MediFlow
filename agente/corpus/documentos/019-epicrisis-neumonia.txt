@@ -1,0 +1,21 @@
+HOSPITAL SANTA LUCIA - EPICRISIS DE INTERNACION
+Ingreso: 02/03/2026 - Egreso: 09/03/2026
+
+Paciente: Julio Cesar Espinola
+Edad: 48 anos
+
+Diagnostico de egreso: Neumonia adquirida en la comunidad, lobulo inferior
+derecho.
+
+Evolucion: Ingresa con fiebre y tos productiva. Recibe antibioticoterapia
+endovenosa durante cinco dias con buena respuesta. Afebril desde el
+cuarto dia.
+
+Medicacion al alta:
+  Amoxicilina-clavulanico 875/125 mg cada 12 horas por 5 dias.
+
+CONCLUSION: Alta medica con evolucion favorable. Control ambulatorio en
+10 dias.
+
+Dr. Hugo Armando Cardozo
+Clinica Medica - MP 33412

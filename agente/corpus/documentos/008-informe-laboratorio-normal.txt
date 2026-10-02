@@ -1,0 +1,16 @@
+LABORATORIO CENTRAL SAN MIGUEL - INFORME DE ANALISIS
+Fecha: 09/02/2026
+
+Paciente: Silvia Raquel Ortega
+Edad: 41 anos
+Solicitante: Dra. Monica Lezcano
+
+Estudio: Hemograma completo y perfil lipidico
+
+Resultados:
+  Hemoglobina 13.4 g/dL        (normal)
+  Leucocitos 7.200 /mm3        (normal)
+  Plaquetas 265.000 /mm3       (normal)
+  Colesterol total 189 mg/dL   (normal)
+
+CONCLUSION: Estudio dentro de parametros normales para la edad.
