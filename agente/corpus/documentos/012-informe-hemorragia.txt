@@ -1,0 +1,15 @@
+HOSPITAL REGIONAL DEL SUR - INFORME DE TOMOGRAFIA
+Fecha: 19/09/2026
+
+Paciente: Dionisio Rafael Acosta
+Edad: 78 anos
+Medico Solicitante: Dra. Patricia Molinas - MP 52004
+
+Estudio: Tomografia de craneo sin contraste
+Indicacion: Cefalea subita de maxima intensidad.
+
+Hallazgos: Imagen hiperdensa en cisternas de la base compatible con
+hemorragia subaracnoidea.
+
+CONCLUSION: Hemorragia subaracnoidea aguda. Requiere evaluacion
+neuroquirurgica inmediata.

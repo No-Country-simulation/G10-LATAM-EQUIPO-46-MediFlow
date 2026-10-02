@@ -4,7 +4,7 @@ Sistema inteligente para el procesamiento, clasificación, extracción y triaje 
 
 **Hackathon ONE G10 — Oracle Next Education & Alura · Proyecto 2 · Equipo 46 (LATAM)**
 
-[Plan de ejecución de las cinco semanas](https://no-country-simulation.github.io/G10-LATAM-EQUIPO-46-MediFlow/) · [Contrato de la API](docs/CONTRATO.md) · [Cómo trabajamos](CONTRIBUTING.md)
+[Plan de ejecución de las cinco semanas](docs/index.html) · [Contrato de la API](docs/CONTRATO.md) · [Cómo trabajamos](CONTRIBUTING.md)
 
 ---
 
@@ -36,13 +36,13 @@ confianza. Un código CIE-10 inventado es peor que un campo vacío.
 flowchart TD
   A["Ingesta: PDF, imagen o texto"] --> B["Normalizacion, OCR y rasterizado"]
   B --> C["Clasificacion del tipo de documento"]
-  C -->|"Desconocido o ilegible"| U["Cola de Emergencia Medica"]
+  C -->|"Desconocido o ilegible"| H["Cola de Revision Humana"]
   C --> D["Extraccion estructurada segun el tipo"]
   D --> E["Validacion de consistencia clinica"]
   E --> F["Score de confianza y deteccion de urgencia"]
   F --> G{"Decision de enrutamiento"}
-  G -->|"Hallazgo critico"| U
-  G -->|"Confianza bajo el umbral"| H["Cola de Revision Humana"]
+  G -->|"Hallazgo critico"| U["Cola de Emergencia Medica"]
+  G -->|"Confianza bajo el umbral"| H
   G -->|"Receta validada"| FA["Farmacia Hospitalaria"]
   G -->|"Orden de procedimiento"| AU["Auditoria de Autorizaciones"]
   G -->|"Informe o epicrisis"| HC["Historia Clinica Electronica"]
@@ -121,7 +121,8 @@ Actualmente se encuentra en desarrollo el **Sprint 1** del módulo **Agent**.
 
 El plan completo de las cinco semanas, con las tres entregas de cada una y el
 reparto entre los dos equipos, está en la
-**[página del plan de ejecución](https://no-country-simulation.github.io/G10-LATAM-EQUIPO-46-MediFlow/)**.
+**[página del plan de ejecución](docs/index.html)**, un archivo HTML que se
+abre con doble clic una vez que clonaste el repositorio.
 
 | Semana | Fechas          | Hito                      |
 |--------|-----------------|---------------------------|
@@ -177,10 +178,7 @@ documentación y demostración.
 | Recurso                  | Enlace |
 |--------------------------|--------|
 | Repositorio              | https://github.com/No-Country-simulation/G10-LATAM-EQUIPO-46-MediFlow |
-| Plan de ejecución        | https://no-country-simulation.github.io/G10-LATAM-EQUIPO-46-MediFlow/ |
+| Plan de ejecución        | [`docs/index.html`](docs/index.html) (se abre local) |
 | Video demo               | *(completar, semana 5)* |
 | Despliegue               | *(completar)* |
 
-## Datos y Descargo de Responsabilidad
-
-El prototipo utiliza **datos ficticios** para las pruebas.
