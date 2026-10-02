@@ -13,8 +13,10 @@ saber si un error vino de leer mal o de entender mal.
 
 import base64
 import logging
-import os
 from abc import ABC, abstractmethod
+
+from mediflow_agent.config import variable
+from mediflow_agent.modelos import MODELO_POR_DEFECTO
 
 _log = logging.getLogger(__name__)
 
@@ -51,8 +53,8 @@ class TranscriptorGemini(Transcriptor):
     def __init__(self, modelo: str | None = None, api_key: str | None = None):
         from langchain_google_genai import ChatGoogleGenerativeAI
 
-        api_key = api_key or os.getenv("GEMINI_API_KEY")
-        modelo = modelo or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        api_key = api_key or variable("GEMINI_API_KEY")
+        modelo = modelo or variable("GEMINI_MODEL", MODELO_POR_DEFECTO)
 
         if not api_key:
             raise ValueError(

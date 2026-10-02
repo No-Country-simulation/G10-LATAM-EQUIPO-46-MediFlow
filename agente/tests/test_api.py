@@ -19,6 +19,7 @@ from mediflow_agent.schemas.models import (
     ExtractedData,
     Patient,
 )
+from mediflow_agent.serialization.contract import SolicitudTriaje
 from mediflow_agent.storage.local import AlmacenamientoLocal
 
 from conftest import TranscriptorDoble, construir_imagen, construir_pdf
@@ -338,3 +339,67 @@ def test_un_archivo_demasiado_grande_se_rechaza(cliente):
     r = _subir(cliente(), b"x" * (MAXIMO_BYTES_SUBIDA + 1))
 
     assert r.status_code == 413
+
+
+# --- Rendimiento (tarea 1.3, requisito clinico) ---------------------------
+
+def test_el_extractor_recibe_el_tipo_de_documento():
+    """El extractor por tipo necesita saber que clase de documento es.
+
+    De una receta importan los medicamentos con su dosis; de un informe, los
+    hallazgos. Esta prueba falla si alguien vuelve a llamar al extractor sin
+    el tipo, que fue el defecto real: el extractor por tipo estaba escrito y
+    probado pero la API seguia usando el generico, asi que las recetas salian
+    sin dosis y el CIE-10 sin verificar.
+    """
+    recibido = {}
+
+    class ExtractorQueRegistra:
+        def extract(self, texto, tipo_documento):
+            recibido["tipo"] = tipo_documento
+            return ExtractedData()
+
+    servicio = ServicioTriaje(
+        clasificador=ClasificadorDoble(
+            ClassificationResult(document_type="receta_medica", confidence=0.9)
+        ),
+        extractor=ExtractorQueRegistra(),
+        almacenamiento=AlmacenamientoLocal("."),
+    )
+    servicio.procesar(
+        SolicitudTriaje(
+            documento_id="DOC-TIPO",
+            tipo_archivo="TEXTO",
+            documento_texto="texto",
+            canal_origen="Recepcion",
+        )
+    )
+
+    assert recibido["tipo"] == "receta_medica"
+
+
+def test_un_extractor_generico_sin_tipo_sigue_funcionando():
+    # Respaldo: el extractor viejo recibe solo el texto y debe seguir andando.
+    servicio = ServicioTriaje(
+        clasificador=ClasificadorDoble(),
+        extractor=ExtractorDoble(),
+        almacenamiento=AlmacenamientoLocal("."),
+    )
+    respuesta = servicio.procesar(
+        SolicitudTriaje(
+            documento_id="DOC-GEN",
+            tipo_archivo="TEXTO",
+            documento_texto="texto",
+            canal_origen="Recepcion",
+        )
+    )
+
+    assert respuesta.datos_extraidos.paciente.nombre == "Carlos Eduardo Mendes"
+
+
+def test_el_presupuesto_de_tiempo_esta_declarado():
+    # El numero vive en un solo lugar y es un requisito clinico, no un
+    # detalle de implementacion.
+    from mediflow_agent.modelos import PRESUPUESTO_SEGUNDOS
+
+    assert PRESUPUESTO_SEGUNDOS == 10.0

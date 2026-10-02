@@ -93,9 +93,12 @@ class DatosInforme(_Base):
     cie10_sugerido: Optional[str] = Field(
         default=None,
         description=(
-            "Codigo CIE-10 solo si hay evidencia explicita y suficiente. "
-            "Ante la minima duda, null: se verifica contra un catalogo y un "
-            "codigo inexistente se descarta igual."
+            "Codigo CIE-10 que corresponde al cuadro descrito. El campo es una "
+            "SUGERENCIA, no un diagnostico: si la conclusion nombra una "
+            "condicion clinica, sugeri su codigo aunque el informe diga "
+            "'compatible con' o 'sospecha de'. Null solo cuando el documento "
+            "no describe ninguna condicion codificable. Nunca inventes un "
+            "codigo: si no sabes cual es, null."
         ),
     )
 
@@ -125,7 +128,11 @@ class DatosEpicrisis(_Base):
     )
 
     cie10_sugerido: Optional[str] = Field(
-        default=None, description="Codigo CIE-10 solo con evidencia explicita."
+        default=None,
+        description=(
+            "Codigo CIE-10 del diagnostico de egreso, como sugerencia. Null si "
+            "no hay un diagnostico codificable. Nunca inventes un codigo."
+        ),
     )
 
 

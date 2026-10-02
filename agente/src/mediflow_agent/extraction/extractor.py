@@ -1,5 +1,7 @@
-import os
 from dotenv import load_dotenv
+
+from mediflow_agent.config import variable
+from mediflow_agent.modelos import MODELO_POR_DEFECTO
 from langchain_google_genai import ChatGoogleGenerativeAI
 from mediflow_agent.schemas.models import ExtractedData
 
@@ -10,8 +12,8 @@ load_dotenv()
 class DocumentExtractor:
 
     def __init__(self):
-        api_key = os.getenv("GEMINI_API_KEY")
-        model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        api_key = variable("GEMINI_API_KEY")
+        model = variable("GEMINI_MODEL", MODELO_POR_DEFECTO)
 
         if not api_key:
             raise ValueError(

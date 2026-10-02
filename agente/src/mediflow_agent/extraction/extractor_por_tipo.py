@@ -20,6 +20,8 @@ from mediflow_agent.extraction.esquemas_por_tipo import (
     ESQUEMA_POR_TIPO,
     a_datos_comunes,
 )
+from mediflow_agent.config import variable
+from mediflow_agent.modelos import MODELO_POR_DEFECTO
 from mediflow_agent.schemas.models import ExtractedData
 from mediflow_agent.validacion.cie10 import depurar
 
@@ -53,7 +55,11 @@ el estudio, los hallazgos son lo que se observo, y la conclusion es lo que el
 profesional concluye. No las mezcles.
 
 El diagnostico va solo si el informe afirma un diagnostico. Si dice "compatible
-con" o "sospecha de", eso es la conclusion, no un diagnostico confirmado.""",
+con" o "sospecha de", eso es la conclusion, no un diagnostico confirmado.
+
+El codigo CIE-10 es distinto: es una SUGERENCIA para clasificar el caso, no un
+diagnostico. Si la conclusion nombra una condicion, sugeri su codigo aunque
+venga precedida de "compatible con". Lo que nunca se hace es inventarlo.""",
 
     "orden_procedimiento": """Estas leyendo una ORDEN DE SOLICITUD DE PROCEDIMIENTO.
 
@@ -94,13 +100,13 @@ class ExtractorPorTipo:
 
         from langchain_google_genai import ChatGoogleGenerativeAI
 
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = variable("GEMINI_API_KEY")
 
         if not api_key:
             raise ValueError("No se encontro GEMINI_API_KEY en el archivo .env")
 
         self._llm = ChatGoogleGenerativeAI(
-            model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+            model=variable("GEMINI_MODEL", MODELO_POR_DEFECTO),
             google_api_key=api_key,
             temperature=0,
         )

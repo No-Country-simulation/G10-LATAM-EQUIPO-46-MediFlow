@@ -21,8 +21,9 @@ como rutina. Por eso la deteccion de urgencia corre ANTES que cualquier otra
 regla y, cuando dispara, no hay ruta que la anule.
 """
 
-import os
 import unicodedata
+
+from mediflow_agent.config import numero
 
 from mediflow_agent.ingestion.base import DocumentoNormalizado
 from mediflow_agent.schemas.models import ClassificationResult, ExtractedData
@@ -37,7 +38,7 @@ from mediflow_agent.serialization.contract import (
 # Por debajo de esta confianza, el caso va a revision humana pase lo que pase.
 # Es un valor propuesto, no medido: la calibracion con datos propios es la
 # tarea 4.2. Configurable por entorno para poder moverlo sin tocar codigo.
-UMBRAL_CONFIANZA = float(os.getenv("MEDIFLOW_UMBRAL_CONFIANZA", "0.70"))
+UMBRAL_CONFIANZA = numero("MEDIFLOW_UMBRAL_CONFIANZA", 0.70)
 
 # Canales que, por si solos, elevan la prioridad. Que un documento venga de
 # guardia es una senal, no una prueba: sube a Prioritario, no a Urgente.

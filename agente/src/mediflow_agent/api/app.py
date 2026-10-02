@@ -28,6 +28,7 @@ from fastapi import (
 )
 
 from mediflow_agent.api.servicio import ServicioTriaje
+from mediflow_agent.config import variable
 from mediflow_agent.ingestion.ingestor import Ingestor
 from mediflow_agent.serialization.contract import RespuestaTriaje, SolicitudTriaje
 from mediflow_agent.storage.base import AlmacenamientoDocumentos
@@ -62,8 +63,8 @@ def obtener_almacenamiento() -> AlmacenamientoDocumentos:
     aplicacion arranca igual y el equipo puede trabajar. Elegir "oci" o "par"
     sin configuracion valida falla al arrancar, no a mitad de un triaje.
     """
-    nombre_bucket = os.getenv("MEDIFLOW_BUCKET", "mediflow-documentos-clinicos")
-    destino = os.getenv("MEDIFLOW_ALMACEN", "local").strip().lower()
+    nombre_bucket = variable("MEDIFLOW_BUCKET", "mediflow-documentos-clinicos")
+    destino = variable("MEDIFLOW_ALMACEN", "local").lower()
 
     if destino == "oci":
         from mediflow_agent.storage.oci_storage import AlmacenamientoOci
@@ -82,7 +83,7 @@ def obtener_almacenamiento() -> AlmacenamientoDocumentos:
             "Use 'oci', 'par' o 'local'."
         )
 
-    raiz = os.getenv("MEDIFLOW_ALMACEN_LOCAL", ".almacen")
+    raiz = variable("MEDIFLOW_ALMACEN_LOCAL", ".almacen")
 
     return AlmacenamientoLocal(Path(raiz), nombre_bucket=nombre_bucket)
 
@@ -97,12 +98,12 @@ def obtener_servicio() -> ServicioTriaje:
     entera con `app.dependency_overrides`.
     """
     from mediflow_agent.classification.classifier import DocumentClassifier
-    from mediflow_agent.extraction.extractor import DocumentExtractor
+    from mediflow_agent.extraction.extractor_por_tipo import ExtractorPorTipo
     from mediflow_agent.ingestion.transcriptor import TranscriptorGemini
 
     return ServicioTriaje(
         clasificador=DocumentClassifier(),
-        extractor=DocumentExtractor(),
+        extractor=ExtractorPorTipo(),
         almacenamiento=obtener_almacenamiento(),
         ingestor=Ingestor(transcriptor=TranscriptorGemini()),
     )

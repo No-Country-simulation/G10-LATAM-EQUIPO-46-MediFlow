@@ -11,9 +11,12 @@ consumen cuota de Gemini ni escriben en un bucket real.
 """
 
 import logging
+import time
+from concurrent.futures import ThreadPoolExecutor
 
 from mediflow_agent.ingestion.base import DocumentoNormalizado, ErrorDeIngesta
 from mediflow_agent.ingestion.ingestor import Ingestor
+from mediflow_agent.modelos import PRESUPUESTO_SEGUNDOS
 from mediflow_agent.routing.baseline import decidir_enrutamiento
 from mediflow_agent.schemas.models import (
     AgentResult,
@@ -129,18 +132,67 @@ class ServicioTriaje:
             _log.warning("Fallo la ingesta de %s: %s", solicitud.documento_id, err)
             return None, str(err)
 
-    def _analizar(self, texto: str) -> tuple[ClassificationResult, ExtractedData, bool]:
-        """Clasifica y extrae. Devuelve tambien si el modelo fallo.
+    def _extraer(self, texto: str, tipo_documento: str):
+        """Llama al extractor, sea el generico o el especifico por tipo.
+
+        El extractor por tipo (tarea 2.2) recibe el tipo de documento y
+        devuelve un `ResultadoExtraccion` con avisos; el generico recibe solo
+        el texto y devuelve `ExtractedData`. Se admiten los dos para no
+        obligar a cambiar todas las pruebas de golpe, y porque el generico
+        sigue siendo util como respaldo.
+        """
+        try:
+            resultado = self._extractor.extract(texto, tipo_documento)
+        except TypeError:
+            # Extractor generico: no acepta el tipo.
+            return self._extractor.extract(texto), ()
+
+        datos = getattr(resultado, "datos", resultado)
+        avisos = tuple(getattr(resultado, "avisos", ()))
+
+        return datos, avisos
+
+    def _analizar(
+        self, texto: str
+    ) -> tuple[ClassificationResult, ExtractedData, tuple[str, ...], bool]:
+        """Clasifica y despues extrae segun el tipo encontrado.
+
+        **Por que en serie y no en paralelo.** El extractor por tipo necesita
+        saber que clase de documento es para elegir su esquema y su prompt: de
+        una receta importan los medicamentos con su dosis, de un informe los
+        hallazgos. Esa dependencia impide lanzar las dos llamadas a la vez.
+
+        Se probo el camino paralelo con el extractor generico y tardaba 1,1
+        segundos contra 2,1 de este. Se eligio este igual, por dos razones: el
+        generico devolvia los medicamentos sin la dosis, que es el dato mas
+        critico de una receta, y la verificacion del codigo CIE-10 contra el
+        catalogo vive dentro del extractor por tipo. Un segundo de diferencia
+        no se nota contra un presupuesto de diez.
 
         Un fallo del modelo no es una excepcion que sube hasta el cliente: es
         exactamente el caso que la regla del proyecto manda escalar a una
         persona. Se devuelve una clasificacion vacia con confianza cero, que el
         enrutamiento va a derivar a revision humana.
         """
+        inicio = time.perf_counter()
+
         try:
             clasificacion = self._clasificador.classify(texto)
-            datos = self._extractor.extract(texto)
-            return clasificacion, datos, False
+            datos, avisos = self._extraer(texto, clasificacion.document_type)
+
+            transcurrido = time.perf_counter() - inicio
+
+            if transcurrido > PRESUPUESTO_SEGUNDOS:
+                # No se corta el triaje: ya esta resuelto y la respuesta sirve.
+                # Pero queda registrado, porque un modelo que se pasa del
+                # presupuesto de forma sostenida hay que cambiarlo.
+                _log.warning(
+                    "El analisis tardo %.1fs, por encima del presupuesto de %.1fs.",
+                    transcurrido,
+                    PRESUPUESTO_SEGUNDOS,
+                )
+
+            return clasificacion, datos, avisos, False
 
         except Exception as err:  # noqa: BLE001 - cualquier fallo escala igual
             _log.exception("Fallo el modelo al procesar el documento: %s", err)
@@ -148,6 +200,7 @@ class ServicioTriaje:
             return (
                 ClassificationResult(document_type="desconocido", confidence=0.0),
                 ExtractedData(),
+                (),
                 True,
             )
 
@@ -169,9 +222,12 @@ class ServicioTriaje:
                 document_type="desconocido", confidence=0.0
             )
             datos = ExtractedData()
+            avisos_extraccion: tuple[str, ...] = ()
             fallo_modelo = False
         else:
-            clasificacion, datos, fallo_modelo = self._analizar(documento.texto)
+            clasificacion, datos, avisos_extraccion, fallo_modelo = self._analizar(
+                documento.texto
+            )
 
         nivel_prioridad, decision, status = decidir_enrutamiento(
             documento_id=solicitud.documento_id,
@@ -195,22 +251,25 @@ class ServicioTriaje:
                 "automatica."
             )
 
+        # Avisos de la ingesta (paginas truncadas, imagen reducida, capa de
+        # texto pobre) y de la extraccion (un codigo CIE-10 descartado por no
+        # existir). Llegan hasta el auditor: le dicen que el agente pudo haber
+        # visto menos de lo que el documento traia, o que descarto un dato.
+        avisos = tuple(documento.avisos if documento else ()) + avisos_extraccion
+
         if motivo:
             decision = decision.model_copy(
                 update={"justificacion_enrutamiento": motivo}
             )
             status = "error"
 
-        elif documento is not None and documento.avisos:
-            # Los avisos de la ingesta (paginas truncadas, imagen reducida,
-            # capa de texto pobre) llegan hasta el auditor: son lo que le dice
-            # que pudo haber visto menos de lo que el documento traia.
+        elif avisos:
             decision = decision.model_copy(
                 update={
                     "justificacion_enrutamiento": (
                         decision.justificacion_enrutamiento
-                        + " Avisos de la ingesta: "
-                        + " ".join(documento.avisos)
+                        + " Avisos: "
+                        + " ".join(avisos)
                     )
                 }
             )
