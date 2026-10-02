@@ -98,12 +98,12 @@ def obtener_servicio() -> ServicioTriaje:
     entera con `app.dependency_overrides`.
     """
     from mediflow_agent.classification.classifier import DocumentClassifier
-    from mediflow_agent.extraction.extractor import DocumentExtractor
+    from mediflow_agent.extraction.extractor_por_tipo import ExtractorPorTipo
     from mediflow_agent.ingestion.transcriptor import TranscriptorGemini
 
     return ServicioTriaje(
         clasificador=DocumentClassifier(),
-        extractor=DocumentExtractor(),
+        extractor=ExtractorPorTipo(),
         almacenamiento=obtener_almacenamiento(),
         ingestor=Ingestor(transcriptor=TranscriptorGemini()),
     )

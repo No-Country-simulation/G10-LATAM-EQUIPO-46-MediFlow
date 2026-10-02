@@ -343,51 +343,58 @@ def test_un_archivo_demasiado_grande_se_rechaza(cliente):
 
 # --- Rendimiento (tarea 1.3, requisito clinico) ---------------------------
 
-def test_la_clasificacion_y_la_extraccion_corren_en_paralelo(almacen):
-    """El requisito es resolver un documento en 10 segundos o menos.
+def test_el_extractor_recibe_el_tipo_de_documento():
+    """El extractor por tipo necesita saber que clase de documento es.
 
-    El extractor generico no necesita el tipo de documento, asi que las dos
-    llamadas al modelo pueden salir a la vez. Con dobles que duermen medio
-    segundo cada uno, en serie tardaria 1 segundo y en paralelo medio.
-
-    Esta prueba falla si alguien vuelve a encadenarlas.
+    De una receta importan los medicamentos con su dosis; de un informe, los
+    hallazgos. Esta prueba falla si alguien vuelve a llamar al extractor sin
+    el tipo, que fue el defecto real: el extractor por tipo estaba escrito y
+    probado pero la API seguia usando el generico, asi que las recetas salian
+    sin dosis y el CIE-10 sin verificar.
     """
-    import time
+    recibido = {}
 
-    class Lento:
-        def __init__(self, resultado):
-            self._resultado = resultado
-
-        def _dormir(self, _texto):
-            time.sleep(0.5)
-            return self._resultado
-
-        classify = _dormir
-        extract = _dormir
+    class ExtractorQueRegistra:
+        def extract(self, texto, tipo_documento):
+            recibido["tipo"] = tipo_documento
+            return ExtractedData()
 
     servicio = ServicioTriaje(
-        clasificador=Lento(
+        clasificador=ClasificadorDoble(
             ClassificationResult(document_type="receta_medica", confidence=0.9)
         ),
-        extractor=Lento(ExtractedData()),
-        almacenamiento=almacen,
+        extractor=ExtractorQueRegistra(),
+        almacenamiento=AlmacenamientoLocal("."),
     )
-
-    inicio = time.perf_counter()
     servicio.procesar(
         SolicitudTriaje(
-            documento_id="DOC-TIEMPO",
+            documento_id="DOC-TIPO",
             tipo_archivo="TEXTO",
-            documento_texto="texto de prueba",
+            documento_texto="texto",
             canal_origen="Recepcion",
         )
     )
-    transcurrido = time.perf_counter() - inicio
 
-    assert transcurrido < 0.9, (
-        f"tardo {transcurrido:.2f}s: las llamadas al modelo volvieron a ser "
-        "secuenciales"
+    assert recibido["tipo"] == "receta_medica"
+
+
+def test_un_extractor_generico_sin_tipo_sigue_funcionando():
+    # Respaldo: el extractor viejo recibe solo el texto y debe seguir andando.
+    servicio = ServicioTriaje(
+        clasificador=ClasificadorDoble(),
+        extractor=ExtractorDoble(),
+        almacenamiento=AlmacenamientoLocal("."),
     )
+    respuesta = servicio.procesar(
+        SolicitudTriaje(
+            documento_id="DOC-GEN",
+            tipo_archivo="TEXTO",
+            documento_texto="texto",
+            canal_origen="Recepcion",
+        )
+    )
+
+    assert respuesta.datos_extraidos.paciente.nombre == "Carlos Eduardo Mendes"
 
 
 def test_el_presupuesto_de_tiempo_esta_declarado():

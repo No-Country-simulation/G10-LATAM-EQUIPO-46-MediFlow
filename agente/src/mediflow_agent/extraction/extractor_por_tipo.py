@@ -55,7 +55,11 @@ el estudio, los hallazgos son lo que se observo, y la conclusion es lo que el
 profesional concluye. No las mezcles.
 
 El diagnostico va solo si el informe afirma un diagnostico. Si dice "compatible
-con" o "sospecha de", eso es la conclusion, no un diagnostico confirmado.""",
+con" o "sospecha de", eso es la conclusion, no un diagnostico confirmado.
+
+El codigo CIE-10 es distinto: es una SUGERENCIA para clasificar el caso, no un
+diagnostico. Si la conclusion nombra una condicion, sugeri su codigo aunque
+venga precedida de "compatible con". Lo que nunca se hace es inventarlo.""",
 
     "orden_procedimiento": """Estas leyendo una ORDEN DE SOLICITUD DE PROCEDIMIENTO.
 

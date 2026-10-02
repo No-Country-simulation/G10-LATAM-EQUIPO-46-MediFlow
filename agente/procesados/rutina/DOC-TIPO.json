@@ -1,0 +1,35 @@
+{
+  "status": "procesado",
+  "documento_id": "DOC-TIPO",
+  "clasificacion": {
+    "tipo_documento": "Receta Medica",
+    "especialidad": null,
+    "nivel_prioridad": "Rutina",
+    "score_confianza_clasificacion": 0.9
+  },
+  "datos_extraidos": {
+    "paciente": {
+      "nombre": null,
+      "edad": null
+    },
+    "medico_solicitante": {
+      "nombre": null,
+      "matricula": null
+    },
+    "estudio_realizado": null,
+    "diagnostico_principal": null,
+    "cie10_sugerido": null,
+    "medicamentos": null
+  },
+  "decision_enrutamiento": {
+    "destino_principal": "Farmacia_Hospitalaria",
+    "requiere_auditoria_humana": false,
+    "justificacion_enrutamiento": "Documento clasificado como 'receta_medica' con confianza 0.90, por encima del umbral (0.70). Sin hallazgos criticos en el texto. Se deriva al destino habitual para este tipo de documento.",
+    "notificacion_generada": null
+  },
+  "almacenamiento_oci": {
+    "bucket": "mediflow-local",
+    "ruta_objeto": "procesados/rutina/DOC-TIPO.json",
+    "status_backup": "exito"
+  }
+}

@@ -16,7 +16,13 @@ cualquiera espera al leer un archivo de configuracion.
 
 import os
 
-NO_DEFINIDO = object()
+from dotenv import load_dotenv
+
+# Se carga el .env aca y no en cada modulo. Antes lo hacia classification y
+# extraction por separado, asi que ExtractorPorTipo funcionaba dentro de la
+# API (de rebote, porque el clasificador se importaba antes) y fallaba al
+# usarlo solo. Cualquier modulo que lea configuracion pasa por aca.
+load_dotenv()
 
 
 def variable(nombre: str, defecto: str | None = None) -> str | None:
