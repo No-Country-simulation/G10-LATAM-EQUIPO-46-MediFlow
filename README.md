@@ -36,13 +36,13 @@ confianza. Un código CIE-10 inventado es peor que un campo vacío.
 flowchart TD
   A["Ingesta: PDF, imagen o texto"] --> B["Normalizacion, OCR y rasterizado"]
   B --> C["Clasificacion del tipo de documento"]
-  C -->|"Desconocido o ilegible"| U["Cola de Emergencia Medica"]
+  C -->|"Desconocido o ilegible"| H["Cola de Revision Humana"]
   C --> D["Extraccion estructurada segun el tipo"]
   D --> E["Validacion de consistencia clinica"]
   E --> F["Score de confianza y deteccion de urgencia"]
   F --> G{"Decision de enrutamiento"}
-  G -->|"Hallazgo critico"| U
-  G -->|"Confianza bajo el umbral"| H["Cola de Revision Humana"]
+  G -->|"Hallazgo critico"| U["Cola de Emergencia Medica"]
+  G -->|"Confianza bajo el umbral"| H
   G -->|"Receta validada"| FA["Farmacia Hospitalaria"]
   G -->|"Orden de procedimiento"| AU["Auditoria de Autorizaciones"]
   G -->|"Informe o epicrisis"| HC["Historia Clinica Electronica"]
@@ -183,6 +183,3 @@ documentación y demostración.
 | Video demo               | *(completar, semana 5)* |
 | Despliegue               | *(completar)* |
 
-## Datos y Descargo de Responsabilidad
-
-El prototipo utiliza **datos ficticios** para las pruebas.

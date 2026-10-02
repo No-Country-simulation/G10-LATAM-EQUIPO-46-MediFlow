@@ -58,19 +58,19 @@ class AlmacenamientoLocal(AlmacenamientoDocumentos):
 
         return destino
 
-    def guardar_texto(
+    def _guardar(
         self,
         prefijo: str,
         nombre_objeto: str,
-        contenido: str,
-        tipo_contenido: str = "application/json",
+        escribir,
     ) -> ObjetoGuardado:
+        """Tronco comun de guardado. `escribir` recibe la ruta de destino."""
         ruta_logica = f"{prefijo}/{nombre_objeto}"
 
         try:
             destino = self._ruta_absoluta(prefijo, nombre_objeto)
             destino.parent.mkdir(parents=True, exist_ok=True)
-            destino.write_text(contenido, encoding="utf-8")
+            escribir(destino)
 
             return ObjetoGuardado(
                 bucket=self._bucket,
@@ -90,13 +90,48 @@ class AlmacenamientoLocal(AlmacenamientoDocumentos):
                 detalle_error=str(err),
             )
 
-    def leer_texto(self, prefijo: str, nombre_objeto: str) -> str | None:
+    # -- API publica -----------------------------------------------------
+
+    def guardar_texto(
+        self,
+        prefijo: str,
+        nombre_objeto: str,
+        contenido: str,
+        tipo_contenido: str = "application/json",
+    ) -> ObjetoGuardado:
+        return self._guardar(
+            prefijo,
+            nombre_objeto,
+            lambda destino: destino.write_text(contenido, encoding="utf-8"),
+        )
+
+    def guardar_binario(
+        self,
+        prefijo: str,
+        nombre_objeto: str,
+        contenido: bytes,
+        tipo_contenido: str = "application/octet-stream",
+    ) -> ObjetoGuardado:
+        return self._guardar(
+            prefijo,
+            nombre_objeto,
+            lambda destino: destino.write_bytes(contenido),
+        )
+
+    def _resolver_existente(self, prefijo: str, nombre_objeto: str):
         try:
             destino = self._ruta_absoluta(prefijo, nombre_objeto)
         except ValueError:
             return None
 
-        if not destino.is_file():
-            return None
+        return destino if destino.is_file() else None
 
-        return destino.read_text(encoding="utf-8")
+    def leer_texto(self, prefijo: str, nombre_objeto: str) -> str | None:
+        destino = self._resolver_existente(prefijo, nombre_objeto)
+
+        return destino.read_text(encoding="utf-8") if destino else None
+
+    def leer_binario(self, prefijo: str, nombre_objeto: str) -> bytes | None:
+        destino = self._resolver_existente(prefijo, nombre_objeto)
+
+        return destino.read_bytes() if destino else None

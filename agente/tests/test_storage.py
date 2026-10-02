@@ -94,3 +94,22 @@ def test_un_fallo_al_guardar_no_lanza_excepcion(tmp_path):
 
     assert resultado.exito is False
     assert resultado.detalle_error
+
+
+# --- Binarios (documento original en PDF o imagen) ------------------------
+
+def test_un_binario_se_guarda_y_se_lee_igual(almacen):
+    datos = bytes(range(256))
+
+    resultado = almacen.guardar_binario("recibidos", "DOC-1.pdf", datos)
+
+    assert resultado.exito is True
+    assert almacen.leer_binario("recibidos", "DOC-1.pdf") == datos
+
+
+def test_leer_un_binario_inexistente_devuelve_none(almacen):
+    assert almacen.leer_binario("recibidos", "no-existe.pdf") is None
+
+
+def test_el_binario_respeta_la_misma_validacion_de_nombre(almacen):
+    assert almacen.guardar_binario("recibidos", "../fuga.pdf", b"x").exito is False

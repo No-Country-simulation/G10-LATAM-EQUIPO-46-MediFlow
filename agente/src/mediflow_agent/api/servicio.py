@@ -1,18 +1,19 @@
 """Orquestacion del triaje: de la solicitud a la respuesta del contrato.
 
-Es el unico lugar donde se ve el flujo completo de punta a punta, y por eso
-conviene que se lea de corrido:
+Es el unico lugar donde se ve el flujo completo de punta a punta:
 
-    recibir -> guardar original -> clasificar -> extraer -> decidir
-            -> guardar resultado en el prefijo que corresponde -> responder
+    recibir -> guardar original -> ingerir -> clasificar -> extraer
+            -> decidir -> guardar resultado en su prefijo -> responder
 
-Las tres dependencias (clasificador, extractor y almacenamiento) se inyectan.
-No se construyen aca a proposito: asi las pruebas usan dobles y no consumen
-cuota de Gemini ni escriben en un bucket real.
+Las cuatro dependencias (ingestor, clasificador, extractor y almacenamiento) se
+inyectan. No se construyen aca a proposito: asi las pruebas usan dobles y no
+consumen cuota de Gemini ni escriben en un bucket real.
 """
 
 import logging
 
+from mediflow_agent.ingestion.base import DocumentoNormalizado, ErrorDeIngesta
+from mediflow_agent.ingestion.ingestor import Ingestor
 from mediflow_agent.routing.baseline import decidir_enrutamiento
 from mediflow_agent.schemas.models import (
     AgentResult,
@@ -36,11 +37,8 @@ from mediflow_agent.storage.base import (
 
 _log = logging.getLogger(__name__)
 
-FORMATOS_CON_TEXTO = frozenset({"TEXTO", "JSON"})
-
-
-class FormatoNoSoportado(Exception):
-    """El documento llego en un formato que la ingesta todavia no lee."""
+# Extension con la que se archiva el original segun como llego.
+EXTENSION_ORIGINAL = {"PDF": "pdf", "IMAGEN": "png", "TEXTO": "txt", "JSON": "json"}
 
 
 def _prefijo_destino(
@@ -69,29 +67,42 @@ class ServicioTriaje:
         clasificador,
         extractor,
         almacenamiento: AlmacenamientoDocumentos,
+        ingestor: Ingestor | None = None,
     ):
         self._clasificador = clasificador
         self._extractor = extractor
         self._almacenamiento = almacenamiento
+        self._ingestor = ingestor or Ingestor()
 
     # -- pasos ----------------------------------------------------------
 
-    def _guardar_original(self, solicitud: SolicitudTriaje) -> None:
-        """Deja el documento tal como llego en `recibidos/`.
+    def _guardar_original(
+        self,
+        solicitud: SolicitudTriaje,
+        contenido: bytes | None,
+    ) -> None:
+        """Archiva el documento tal como llego, en `recibidos/`.
 
-        Es lo que permite reprocesar un caso o auditar que vio el agente. Si
-        falla, se registra y se sigue: perder la copia del original es malo,
-        pero no tanto como no triar el documento.
+        Es lo unico que permite auditar despues si el agente leyo mal o si el
+        documento ya venia ilegible. Si falla, se registra y se sigue: perder
+        la copia es malo, pero no tanto como no triar el documento.
         """
-        if not solicitud.documento_texto:
-            return
+        extension = EXTENSION_ORIGINAL.get(solicitud.tipo_archivo, "bin")
+        nombre = f"{solicitud.documento_id}.{extension}"
 
-        resultado = self._almacenamiento.guardar_texto(
-            prefijo=PREFIJO_RECIBIDOS,
-            nombre_objeto=f"{solicitud.documento_id}.txt",
-            contenido=solicitud.documento_texto,
-            tipo_contenido="text/plain; charset=utf-8",
-        )
+        if contenido is not None:
+            resultado = self._almacenamiento.guardar_binario(
+                PREFIJO_RECIBIDOS, nombre, contenido
+            )
+        elif solicitud.documento_texto:
+            resultado = self._almacenamiento.guardar_texto(
+                PREFIJO_RECIBIDOS,
+                nombre,
+                solicitud.documento_texto,
+                tipo_contenido="text/plain; charset=utf-8",
+            )
+        else:
+            return
 
         if not resultado.exito:
             _log.warning(
@@ -100,13 +111,31 @@ class ServicioTriaje:
                 resultado.detalle_error,
             )
 
+    def _ingerir(
+        self,
+        solicitud: SolicitudTriaje,
+        contenido: bytes | None,
+    ) -> tuple[DocumentoNormalizado | None, str | None]:
+        """Normaliza el documento. Devuelve (documento, motivo_de_fallo)."""
+        try:
+            documento = self._ingestor.ingerir(
+                tipo_archivo=solicitud.tipo_archivo,
+                contenido=contenido,
+                texto=solicitud.documento_texto,
+            )
+            return documento, None
+
+        except ErrorDeIngesta as err:
+            _log.warning("Fallo la ingesta de %s: %s", solicitud.documento_id, err)
+            return None, str(err)
+
     def _analizar(self, texto: str) -> tuple[ClassificationResult, ExtractedData, bool]:
         """Clasifica y extrae. Devuelve tambien si el modelo fallo.
 
         Un fallo del modelo no es una excepcion que sube hasta el cliente: es
         exactamente el caso que la regla del proyecto manda escalar a una
-        persona. Se devuelve una clasificacion vacia con confianza cero, que
-        el enrutamiento va a derivar a revision humana.
+        persona. Se devuelve una clasificacion vacia con confianza cero, que el
+        enrutamiento va a derivar a revision humana.
         """
         try:
             clasificacion = self._clasificador.classify(texto)
@@ -124,41 +153,67 @@ class ServicioTriaje:
 
     # -- flujo completo -------------------------------------------------
 
-    def procesar(self, solicitud: SolicitudTriaje) -> RespuestaTriaje:
-        if solicitud.tipo_archivo not in FORMATOS_CON_TEXTO:
-            # PDF e imagen son la tarea 2.1. Se rechaza de forma explicita en
-            # lugar de devolver un triaje vacio que parezca valido.
-            raise FormatoNoSoportado(
-                f"La ingesta de {solicitud.tipo_archivo} todavia no esta "
-                "implementada (tarea 2.1). Por ahora solo TEXTO y JSON."
+    def procesar(
+        self,
+        solicitud: SolicitudTriaje,
+        contenido: bytes | None = None,
+    ) -> RespuestaTriaje:
+        self._guardar_original(solicitud, contenido)
+
+        documento, fallo_ingesta = self._ingerir(solicitud, contenido)
+
+        if documento is None:
+            # No se pudo leer el documento. No se intenta clasificar algo que
+            # no se leyo: se escala tal como manda la regla del proyecto.
+            clasificacion = ClassificationResult(
+                document_type="desconocido", confidence=0.0
             )
-
-        texto = solicitud.documento_texto or ""
-
-        self._guardar_original(solicitud)
-
-        clasificacion, datos, fallo_modelo = self._analizar(texto)
+            datos = ExtractedData()
+            fallo_modelo = False
+        else:
+            clasificacion, datos, fallo_modelo = self._analizar(documento.texto)
 
         nivel_prioridad, decision, status = decidir_enrutamiento(
             documento_id=solicitud.documento_id,
             clasificacion=clasificacion,
             datos=datos,
             canal_origen=solicitud.canal_origen,
+            documento=documento,
         )
 
-        if fallo_modelo:
-            # Se conserva la ruta que eligio el enrutamiento (revision humana,
-            # por confianza cero) pero se dice la verdad sobre por que.
+        motivo = None
+
+        if fallo_ingesta:
+            motivo = (
+                f"No se pudo leer el documento ({fallo_ingesta}). Se escala a "
+                "revision humana sin intentar una clasificacion automatica."
+            )
+        elif fallo_modelo:
+            motivo = (
+                "El modelo de lenguaje fallo al procesar el documento. Se "
+                "escala a revision humana sin intentar una clasificacion "
+                "automatica."
+            )
+
+        if motivo:
+            decision = decision.model_copy(
+                update={"justificacion_enrutamiento": motivo}
+            )
+            status = "error"
+
+        elif documento is not None and documento.avisos:
+            # Los avisos de la ingesta (paginas truncadas, imagen reducida,
+            # capa de texto pobre) llegan hasta el auditor: son lo que le dice
+            # que pudo haber visto menos de lo que el documento traia.
             decision = decision.model_copy(
                 update={
                     "justificacion_enrutamiento": (
-                        "El modelo de lenguaje fallo al procesar el documento. "
-                        "Se escala a revision humana sin intentar una "
-                        "clasificacion automatica."
+                        decision.justificacion_enrutamiento
+                        + " Avisos de la ingesta: "
+                        + " ".join(documento.avisos)
                     )
                 }
             )
-            status = "error"
 
         prefijo = _prefijo_destino(nivel_prioridad, decision)
         nombre_objeto = f"{solicitud.documento_id}.json"

@@ -75,3 +75,23 @@ class AlmacenamientoDocumentos(ABC):
         Existe para que la prueba de subida y descarga que pide la tarea 1.2
         se pueda escribir contra la interfaz y no contra una implementacion.
         """
+
+    @abstractmethod
+    def guardar_binario(
+        self,
+        prefijo: str,
+        nombre_objeto: str,
+        contenido: bytes,
+        tipo_contenido: str = "application/octet-stream",
+    ) -> ObjetoGuardado:
+        """Guarda contenido binario. Mismas reglas que `guardar_texto`.
+
+        Hace falta porque el documento original puede ser un PDF o una foto, y
+        `recibidos/` tiene que conservarlo tal como llego: es lo unico que
+        permite auditar despues si el agente leyo mal o si el documento ya
+        venia ilegible.
+        """
+
+    @abstractmethod
+    def leer_binario(self, prefijo: str, nombre_objeto: str) -> bytes | None:
+        """Devuelve el contenido binario guardado, o None si no existe."""
