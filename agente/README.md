@@ -89,6 +89,35 @@ Para correr la suite de pruebas automatizadas con `pytest`:
   python -m pytest
   ```
 
+## Verificacion de codigos CIE-10
+
+Un modelo de lenguaje puede devolver un codigo con forma perfecta que no
+existe: `I29.4` se ve tan creible como `I26.9`, y nadie lo nota leyendo la
+respuesta. Por eso todo codigo sugerido se contrasta contra el catalogo local
+de `src/mediflow_agent/datos/cie10_categorias.txt`, y si no existe se descarta.
+
+**Que verifica y que no**, porque una verificacion que promete de mas es peor
+que ninguna:
+
+| | |
+|---|---|
+| Verifica la forma del codigo | si |
+| Verifica que la categoria de tres caracteres exista | si |
+| Verifica que el codigo sea el correcto para el diagnostico | **no** — eso lo decide una persona |
+| Verifica el cuarto caracter contra la CIE-10 de la OMS | **no** — el catalogo no llega a esa granularidad |
+
+**Procedencia del catalogo.** Son 1.907 categorias derivadas de ICD-10-CM,
+publicado por CMS (Estados Unidos), que es de dominio publico. No se usa la
+CIE-10 de la OMS porque esta bajo licencia Creative Commons
+Attribution-NoDerivatives, que prohibe producir adaptaciones, y reformatearla a
+este archivo seria una. Las categorias de tres caracteres son comunes a las dos
+clasificaciones.
+
+**Hueco conocido:** la version de la fuente es anterior a 2020 y no traia el
+capitulo U. Las cuatro categorias U (COVID-19) se agregaron a mano y estan
+marcadas como tales en el archivo. Conviene refrescar el catalogo desde una
+version vigente de CMS antes de la entrega final.
+
 ## Reglas Importantes del Agente
 
 Para garantizar la seguridad y fiabilidad clínica, el comportamiento del Agente está blindado bajo las siguientes reglas:
