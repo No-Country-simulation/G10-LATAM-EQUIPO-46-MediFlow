@@ -139,10 +139,52 @@ Mientras no exista el bucket de OCI (tarea 1.2), la persistencia va a disco con
   auditoria_humana/       confianza baja o documento ambiguo
 ```
 
-Esto **no reemplaza a OCI**, que el enunciado exige como requisito obligatorio.
-Es lo que permite que el endpoint funcione de punta a punta mientras tanto.
-Cuando exista el bucket, se agrega una implementación de
-`AlmacenamientoDocumentos` y se cambia una sola función en `api/app.py`.
+Para usar OCI Object Storage, que es lo que exige el enunciado, se cambia una
+variable. Hay dos formas:
+
+**Con un Pre-Authenticated Request (PAR).** Es lo más rápido: no hace falta
+usuario, ni clave de API, ni acceso a la consola. Solo el enlace.
+
+```env
+MEDIFLOW_ALMACEN=par
+MEDIFLOW_OCI_PAR=https://objectstorage.<region>.oraclecloud.com/p/.../o/
+```
+
+> **Ese enlace es la credencial.** Quien lo tenga puede leer y escribir en el
+> bucket. No va al repositorio ni a un canal público, y **caduca** en la fecha
+> que se eligió al crearlo.
+
+**Con credenciales IAM propias.** Es la vía normal y no caduca.
+
+```env
+MEDIFLOW_ALMACEN=oci
+MEDIFLOW_BUCKET=nombre-del-bucket
+```
+
+más las variables `OCI_*` del `.env.example`.
+
+Ni el endpoint ni el servicio se enteran de cuál de los tres almacenes está en
+uso.
+
+#### Verificar la conexión con OCI
+
+```bash
+python scripts/verificar_oci.py
+```
+
+Sube un objeto de prueba a los cuatro prefijos, lo vuelve a leer y compara el
+contenido. Es la prueba de subida y descarga que pide la tarea 1.2. Si algo
+falla, dice qué revisar en lugar de mostrar una traza.
+
+#### Obtener las credenciales
+
+En la consola de OCI: **perfil → My profile → API keys → Add API key**. Al
+generarla, OCI muestra un bloque de configuración con el OCID del usuario, el
+de la tenancy y el fingerprint, y descarga un archivo `.pem` con la clave
+privada.
+
+> **El `.pem` nunca va al repositorio.** El `.gitignore` lo bloquea, pero la
+> red de seguridad no reemplaza mirar tu propio `git diff`.
 
 Dos variables opcionales:
 
