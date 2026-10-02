@@ -178,7 +178,6 @@ documentación y demostración.
 |--------------------------|--------|
 | Repositorio              | https://github.com/No-Country-simulation/G10-LATAM-EQUIPO-46-MediFlow |
 | Plan de ejecución        | https://no-country-simulation.github.io/G10-LATAM-EQUIPO-46-MediFlow/ |
-| Tablero de trabajo       | *(a confirmar: puede ser la seccion Progreso de la plataforma ONE)* |
 | Video demo               | *(completar, semana 5)* |
 | Despliegue               | *(completar)* |
 
