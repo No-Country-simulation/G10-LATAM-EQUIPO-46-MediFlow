@@ -19,6 +19,7 @@ from mediflow_agent.schemas.models import (
     ExtractedData,
     Patient,
 )
+from mediflow_agent.serialization.contract import SolicitudTriaje
 from mediflow_agent.storage.local import AlmacenamientoLocal
 
 from conftest import TranscriptorDoble, construir_imagen, construir_pdf
@@ -338,3 +339,60 @@ def test_un_archivo_demasiado_grande_se_rechaza(cliente):
     r = _subir(cliente(), b"x" * (MAXIMO_BYTES_SUBIDA + 1))
 
     assert r.status_code == 413
+
+
+# --- Rendimiento (tarea 1.3, requisito clinico) ---------------------------
+
+def test_la_clasificacion_y_la_extraccion_corren_en_paralelo(almacen):
+    """El requisito es resolver un documento en 10 segundos o menos.
+
+    El extractor generico no necesita el tipo de documento, asi que las dos
+    llamadas al modelo pueden salir a la vez. Con dobles que duermen medio
+    segundo cada uno, en serie tardaria 1 segundo y en paralelo medio.
+
+    Esta prueba falla si alguien vuelve a encadenarlas.
+    """
+    import time
+
+    class Lento:
+        def __init__(self, resultado):
+            self._resultado = resultado
+
+        def _dormir(self, _texto):
+            time.sleep(0.5)
+            return self._resultado
+
+        classify = _dormir
+        extract = _dormir
+
+    servicio = ServicioTriaje(
+        clasificador=Lento(
+            ClassificationResult(document_type="receta_medica", confidence=0.9)
+        ),
+        extractor=Lento(ExtractedData()),
+        almacenamiento=almacen,
+    )
+
+    inicio = time.perf_counter()
+    servicio.procesar(
+        SolicitudTriaje(
+            documento_id="DOC-TIEMPO",
+            tipo_archivo="TEXTO",
+            documento_texto="texto de prueba",
+            canal_origen="Recepcion",
+        )
+    )
+    transcurrido = time.perf_counter() - inicio
+
+    assert transcurrido < 0.9, (
+        f"tardo {transcurrido:.2f}s: las llamadas al modelo volvieron a ser "
+        "secuenciales"
+    )
+
+
+def test_el_presupuesto_de_tiempo_esta_declarado():
+    # El numero vive en un solo lugar y es un requisito clinico, no un
+    # detalle de implementacion.
+    from mediflow_agent.modelos import PRESUPUESTO_SEGUNDOS
+
+    assert PRESUPUESTO_SEGUNDOS == 10.0

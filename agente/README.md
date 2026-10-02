@@ -207,6 +207,36 @@ Las pruebas **no llaman a Gemini**: el modelo se sustituye por dobles. Corren
 en menos de un segundo y no consumen cuota, que es la contramedida al riesgo
 de quedarse sin llamadas gratuitas a mitad de la semana.
 
+## Tiempo de respuesta
+
+El requisito es resolver un documento en **10 segundos o menos**. No es una
+meta de rendimiento: un informe de guardia que tarda un minuto en enrutarse no
+sirve para nada.
+
+Medido sobre un informe real, clasificando y extrayendo con la misma clave:
+
+| Modelo | Clasificación | Extracción | Total |
+|--------|---------------|------------|-------|
+| `gemini-3.5-flash-lite` | 0,9 s | 1,2 s | **2,1 s** |
+| `gemini-flash-lite-latest` | 1,0 s | 1,1 s | 2,1 s |
+| `gemini-3.7-flash` | 79,0 s | 44,8 s | **123,8 s** |
+| `gemini-3.8-flash` | — | — | cuota libre: **20 pedidos por día** |
+
+Los modelos que razonan antes de responder tardan dos minutos. Por eso el
+proyecto usa un modelo *lite* por defecto.
+
+Además, **el clasificador y el extractor corren en paralelo**: el extractor
+genérico no necesita saber el tipo de documento, así que las dos llamadas
+salen a la vez. Eso baja el total a poco más de un segundo.
+
+Medido de punta a punta sobre los tres escenarios del enunciado: **1,0 a
+1,3 segundos** por documento.
+
+> La velocidad está medida; **la exactitud todavía no**. Un modelo más chico
+> puede acertar menos. Se mide con `scripts/evaluar_corpus.py` sobre los 30
+> documentos etiquetados. Si no alcanza, hay que subir de modelo sin pasarse
+> del presupuesto de tiempo, no resignar el tiempo.
+
 ## Verificacion de codigos CIE-10
 
 Un modelo de lenguaje puede devolver un codigo con forma perfecta que no
