@@ -92,7 +92,28 @@ Dos endpoints:
 | Método | Ruta | Para qué |
 |--------|------|----------|
 | `GET`  | `/salud` | Comprobar que el servicio está arriba. No llama al modelo ni gasta cuota. |
-| `POST` | `/triaje` | Procesa un documento y devuelve la decisión de triaje. |
+| `POST` | `/triaje` | Documento en **texto**. Cuerpo JSON. |
+| `POST` | `/triaje/archivo` | Documento en **PDF o imagen**. Subida multipart. |
+
+Los dos devuelven exactamente la misma respuesta: el formato de entrada no
+cambia nada de lo que recibe el consumidor.
+
+#### Qué formatos lee
+
+| Entra | Cómo se lee |
+|-------|-------------|
+| Texto plano | Directo. |
+| PDF nativo | Capa de texto del PDF. No gasta cuota del modelo. |
+| PDF escaneado | Se rasterizan las páginas y las transcribe el modelo multimodal. |
+| Imagen (foto, captura) | Se normaliza y la transcribe el modelo multimodal. |
+
+Se usa Gemini multimodal en vez de un OCR tradicional, como sugiere el
+enunciado. Eso evita depender de Tesseract, que en Windows es una instalación
+externa aparte.
+
+El caso peligroso está contemplado: un PDF con una **capa de texto pobre** —un
+escaneo al que alguien le pasó un OCR malo— parece éxito y no lo es. Se detecta
+por densidad de caracteres por página y se transcribe igual.
 
 Prueba rápida con el caso del enunciado:
 
@@ -154,6 +175,3 @@ Para garantizar la seguridad y fiabilidad clínica, el comportamiento del Agente
 4. **Validación estricta:** Validar los tipos y límites de todas las estructuras mediante Pydantic (ej. confianza entre 0 y 1).
 5. **Alcance de Codificación:** Tratar `suggested_icd10` únicamente como una sugerencia automatizada y jamás como un diagnóstico definitivo.
 
-## 🔬 Datos de Prueba
-
-Los documentos incluidos en la carpeta `examples/` contienen exclusivamente **datos ficticios** destinados al desarrollo y pruebas del prototipo. No contienen información real de pacientes ni deben usarse con fines comerciales.
