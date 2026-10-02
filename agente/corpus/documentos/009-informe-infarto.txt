@@ -1,0 +1,14 @@
+SANATORIO DEL NORTE - INFORME DE ELECTROCARDIOGRAMA
+Fecha: 30/08/2026
+
+Paciente: Ramon Alberto Giménez
+Edad: 64 anos
+Medico Solicitante: Dr. Javier Ocampo - MP 77310
+
+Estudio: Electrocardiograma de 12 derivaciones
+Indicacion: Dolor precordial opresivo de 40 minutos de evolucion.
+
+Hallazgos: Supradesnivel del segmento ST en derivaciones V2 a V5.
+
+CONCLUSION: Hallazgos compatibles con infarto agudo de miocardio de cara
+anterior. Requiere atencion inmediata.
