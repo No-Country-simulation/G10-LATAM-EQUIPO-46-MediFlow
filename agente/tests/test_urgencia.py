@@ -145,10 +145,16 @@ def test_basta_con_que_una_via_diga_urgente():
     assert urgencia.via == "lista"
 
 
-def test_cuando_las_dos_coinciden_se_informa():
-    urgencia = detectar("Sepsis grave.", llm=ModeloDoble(True, "sepsis"))
+def test_si_la_lista_ya_decidio_no_se_llama_al_modelo():
+    # La regla es OR: si la lista dice urgente, la respuesta del modelo no
+    # puede cambiar el resultado. Preguntarle seria gastar una llamada y
+    # tiempo justo en el caso que no puede esperar.
+    modelo = ModeloDoble(True, "sepsis")
+    urgencia = detectar("Sepsis grave.", llm=modelo)
 
-    assert urgencia.via == "ambas"
+    assert urgencia.es_urgente
+    assert urgencia.via == "lista"
+    assert modelo.llamadas == 0, "no habia que consultar al modelo"
 
 
 def test_un_fallo_del_modelo_no_apaga_la_via_por_lista():

@@ -102,7 +102,13 @@ def decidir_enrutamiento(
     respuesta del contrato. No toca el almacenamiento ni llama al modelo: es
     una funcion pura, y por eso se puede probar exhaustivamente.
     """
-    texto = _texto_clinico(datos)
+    # La deteccion de urgencia mira el documento ORIGINAL, no solo los campos
+    # extraidos. Una receta no tiene hallazgos ni conclusion, asi que el texto
+    # reconstruido quedaba vacio y el modelo, forzado a opinar sobre la nada,
+    # respondia "urgente". Los campos extraidos quedan como respaldo para
+    # cuando no hay documento (por ejemplo al llamar al grafo desde una
+    # prueba).
+    texto = (documento.texto if documento else "") or _texto_clinico(datos)
     canal_prioritario = _normalizar(canal_origen) in CANALES_PRIORITARIOS
     nombre_paciente = datos.patient.name or "paciente sin identificar"
 

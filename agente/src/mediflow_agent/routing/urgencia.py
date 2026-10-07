@@ -216,6 +216,14 @@ def detectar_por_modelo(texto: str, llm: Any) -> tuple[bool, Optional[str]]:
     por lista sigue valiendo y el fallo del modelo ya tiene su propia ruta de
     escalado en el servicio.
     """
+    if not texto or not texto.strip():
+        # Preguntarle al modelo sobre un texto vacio es pedirle que adivine, y
+        # como el prompt lo sesga a escalar, responde "urgente". Se midio: una
+        # receta de rutina terminaba en la cola de emergencia con la
+        # justificacion "el documento no contiene texto". Un documento sin
+        # contenido legible ya tiene su propia ruta de escalado.
+        return False, None
+
     try:
         evaluacion = llm.with_structured_output(_EvaluacionUrgencia).invoke(
             INSTRUCCION_MODELO.format(texto=texto)
@@ -238,7 +246,12 @@ def detectar(texto: str, llm: Any = None) -> Urgencia:
 
     por_modelo, motivo = (False, None)
 
-    if llm is not None:
+    # Si la lista ya dijo urgente, no se le pregunta al modelo: la regla es OR,
+    # asi que su respuesta no puede cambiar el resultado. Ahorra una llamada
+    # justo en los casos criticos, que son los que no pueden esperar, y una
+    # llamada menos es tambien un riesgo menos de chocar contra el limite de
+    # 15 pedidos por minuto de la capa gratuita.
+    if llm is not None and not por_lista:
         por_modelo, motivo = detectar_por_modelo(texto, llm)
 
     if por_lista and por_modelo:
