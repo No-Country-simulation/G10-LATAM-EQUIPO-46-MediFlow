@@ -91,10 +91,26 @@ def test_el_modelo_por_defecto_esta_en_un_solo_lugar():
     assert MODELO_POR_DEFECTO
 
     fuente = Path(__file__).resolve().parent.parent / "src" / "mediflow_agent"
-    codificados = [
-        p.name
-        for p in fuente.rglob("*.py")
-        if p.name != "modelos.py" and "gemini-" in p.read_text(encoding="utf-8")
-    ]
+    codificados = []
+
+    for archivo in fuente.rglob("*.py"):
+        if archivo.name == "modelos.py":
+            continue
+
+        for numero_linea, linea in enumerate(
+            archivo.read_text(encoding="utf-8").splitlines(), 1
+        ):
+            # Solo molesta el modelo USADO, no el mencionado en un comentario
+            # o en la documentacion de un modulo. La senal de uso es una
+            # asignacion o un argumento llamado model.
+            limpia = linea.strip()
+
+            if (
+                "gemini-" in limpia
+                and "=" in limpia
+                and "model" in limpia.lower()
+                and not limpia.startswith("#")
+            ):
+                codificados.append(f"{archivo.name}:{numero_linea}")
 
     assert not codificados, f"el modelo quedo escrito a mano en: {codificados}"

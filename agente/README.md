@@ -237,6 +237,66 @@ Medido de punta a punta sobre los tres escenarios del enunciado: **1,0 a
 > documentos etiquetados. Si no alcanza, hay que subir de modelo sin pasarse
 > del presupuesto de tiempo, no resignar el tiempo.
 
+## Deteccion de urgencia por doble via
+
+El peor fallo posible del sistema es que un hallazgo urgente se clasifique
+como rutina. La deteccion corre por **dos vias independientes**, y basta con
+que **una** diga urgente para que el caso vaya a la cola de emergencia.
+
+**Por que dos.** Se midio una sola via —la lista de terminos— contra 95
+frases clinicas:
+
+| Grupo | Acierto con lista sola |
+|-------|------------------------|
+| Urgentes nombrados con un termino de la lista | 25/25 — 100% |
+| **Urgentes descritos SIN termino de la lista** | **2/30 — 7%** |
+| Documentacion de rutina | 20/20 — 100% |
+| Negaciones ("se descarta infarto") | 0/20 — 0% |
+
+La lista se habia agrandado de 17 a **185 terminos** antes de medir. Diez
+veces mas palabras, y los cuadros descritos por anatomia o por valores de
+laboratorio se seguian escapando en un 93 por ciento. El problema no es el
+tamano de la lista: una lista compara texto, no entiende lo que lee.
+
+*"Obstruccion completa de la arteria descendente anterior"* describe un
+infarto sin decir "infarto".
+
+**Las dos vias:**
+
+| Via | Que aporta | Costo |
+|-----|------------|-------|
+| **Lista** de 185 terminos en 11 grupos | Instantanea, gratis, sigue en pie aunque el modelo este caido o sin cuota | 0 llamadas |
+| **Modelo** evaluando el cuadro | Entiende lo que la lista no puede nombrar | 1 llamada |
+
+**El filtro de negacion.** Una lista grande trae su propio dano: las 20
+negaciones del banco disparaban todas. Ahora se mira hacia atras hasta la
+puntuacion anterior buscando "sin", "descarta", "ausencia de", "antecedente
+de". Quedan 2 falsos positivos, ambos de cuadros ya resueltos donde la marca
+va *despues* del termino. Se dejan a proposito: suprimirlos requeriria reglas
+que podrian callar una urgencia real.
+
+**Como se mide:**
+
+```bash
+python scripts/evaluar_urgencia.py            # solo la lista, gratis
+python scripts/evaluar_urgencia.py --modelo   # las dos vias
+```
+
+La via por lista no cuesta una sola llamada, asi que se puede correr contra
+un banco tan grande como se arme.
+
+## Reglas de triaje configurables
+
+Los umbrales y los destinos viven en [`config/triaje.toml`](config/triaje.toml),
+no en el codigo. Es lo que pide la tarea 3.2 y habilita el diferencial del
+enunciado: que un gestor hospitalario ajuste el triaje sin tocar una linea.
+
+Precedencia: **variable de entorno > archivo > valor por defecto**.
+
+Un archivo ausente o con un error de tipeo no tumba el sistema: se cae a los
+valores por defecto y se sigue. Lo contrario significaria que un TOML mal
+escrito deja sin atender una guardia.
+
 ## Verificacion de codigos CIE-10
 
 Un modelo de lenguaje puede devolver un codigo con forma perfecta que no

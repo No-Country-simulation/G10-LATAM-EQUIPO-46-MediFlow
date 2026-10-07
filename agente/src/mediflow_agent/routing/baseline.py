@@ -23,9 +23,10 @@ regla y, cuando dispara, no hay ruta que la anule.
 
 import unicodedata
 
-from mediflow_agent.config import numero
+from mediflow_agent.config import ajuste
 
 from mediflow_agent.ingestion.base import DocumentoNormalizado
+from mediflow_agent.routing.urgencia import detectar as detectar_urgencia
 from mediflow_agent.schemas.models import ClassificationResult, ExtractedData
 from mediflow_agent.serialization.contract import (
     DecisionEnrutamientoContrato,
@@ -38,35 +39,18 @@ from mediflow_agent.serialization.contract import (
 # Por debajo de esta confianza, el caso va a revision humana pase lo que pase.
 # Es un valor propuesto, no medido: la calibracion con datos propios es la
 # tarea 4.2. Configurable por entorno para poder moverlo sin tocar codigo.
-UMBRAL_CONFIANZA = numero("MEDIFLOW_UMBRAL_CONFIANZA", 0.70)
+UMBRAL_CONFIANZA = ajuste(
+    "confianza", "umbral", 0.70, "MEDIFLOW_UMBRAL_CONFIANZA"
+)
 
 # Canales que, por si solos, elevan la prioridad. Que un documento venga de
 # guardia es una senal, no una prueba: sube a Prioritario, no a Urgente.
-CANALES_PRIORITARIOS = frozenset({"guardia_emergencias", "urgencias", "emergencias"})
-
-# Terminos que, si aparecen en el texto clinico extraido, marcan el caso como
-# urgente. Lista corta y conservadora a proposito: un falso positivo cuesta que
-# un humano mire un caso de rutina; un falso negativo cuesta que nadie vea un
-# infarto. La deteccion por modelo, que capta lo que esta lista no ve, es la
-# tarea 3.2.
-TERMINOS_CRITICOS = (
-    "tromboembolismo",
-    "tep agudo",
-    "embolia pulmonar",
-    "infarto",
-    "isquemia aguda",
-    "hemorragia",
-    "sepsis",
-    "shock",
-    "paro cardiorrespiratorio",
-    "aneurisma",
-    "diseccion aortica",
-    "neoplasia maligna",
-    "perforacion",
-    "meningitis",
-    "estado critico",
-    "urgente",
-    "emergencia",
+CANALES_PRIORITARIOS = frozenset(
+    ajuste(
+        "urgencia",
+        "canales_prioritarios",
+        ["guardia_emergencias", "urgencias", "emergencias"],
+    )
 )
 
 # Destino por tipo de documento, segun el grafo de decision del README.
@@ -100,11 +84,7 @@ def _texto_clinico(datos: ExtractedData) -> str:
         datos.study,
         datos.procedure,
     ]
-    return _normalizar(" ".join(p for p in partes if p))
-
-
-def _terminos_criticos_presentes(texto: str) -> list[str]:
-    return [t for t in TERMINOS_CRITICOS if t in texto]
+    return " ".join(p for p in partes if p)
 
 
 def decidir_enrutamiento(
@@ -114,6 +94,7 @@ def decidir_enrutamiento(
     canal_origen: str,
     umbral_confianza: float = UMBRAL_CONFIANZA,
     documento: DocumentoNormalizado | None = None,
+    llm: object | None = None,
 ) -> tuple[NivelPrioridad, DecisionEnrutamientoContrato, StatusTriaje]:
     """Decide prioridad, destino y estado del triaje.
 
@@ -122,20 +103,24 @@ def decidir_enrutamiento(
     una funcion pura, y por eso se puede probar exhaustivamente.
     """
     texto = _texto_clinico(datos)
-    criticos = _terminos_criticos_presentes(texto)
     canal_prioritario = _normalizar(canal_origen) in CANALES_PRIORITARIOS
     nombre_paciente = datos.patient.name or "paciente sin identificar"
 
     # ---- 1. Urgencia. Corre primero y gana sobre todo lo demas. -----------
-    if criticos:
+    # Doble via: lista de terminos y modelo. Basta con que UNA diga urgente.
+    # Medido sobre 95 frases: la lista sola dejaba escapar 28 de 30 cuadros
+    # descritos sin nombrar la patologia; con las dos vias, ninguno.
+    urgencia = detectar_urgencia(texto, llm=llm)
+
+    if urgencia.es_urgente:
         return (
             "Urgente",
             DecisionEnrutamientoContrato(
                 destino_principal="Cola_Emergencia_Medica",
                 requiere_auditoria_humana=False,
                 justificacion_enrutamiento=(
-                    "Hallazgo critico detectado en el texto clinico "
-                    f"({', '.join(criticos)}). Se prioriza la atencion "
+                    f"Hallazgo critico detectado (via: {urgencia.via}). "
+                    f"{urgencia.explicacion()} Se prioriza la atencion "
                     "inmediata por encima de la ruta habitual del tipo de "
                     "documento."
                 ),

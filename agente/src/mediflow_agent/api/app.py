@@ -29,6 +29,7 @@ from fastapi import (
 
 from mediflow_agent.api.servicio import ServicioTriaje
 from mediflow_agent.config import variable
+from mediflow_agent.modelos import MODELO_POR_DEFECTO
 from mediflow_agent.ingestion.ingestor import Ingestor
 from mediflow_agent.serialization.contract import RespuestaTriaje, SolicitudTriaje
 from mediflow_agent.storage.base import AlmacenamientoDocumentos
@@ -97,6 +98,8 @@ def obtener_servicio() -> ServicioTriaje:
     podria ni arrancar sin credenciales. Las pruebas sustituyen esta funcion
     entera con `app.dependency_overrides`.
     """
+    from langchain_google_genai import ChatGoogleGenerativeAI
+
     from mediflow_agent.classification.classifier import DocumentClassifier
     from mediflow_agent.extraction.extractor_por_tipo import ExtractorPorTipo
     from mediflow_agent.ingestion.transcriptor import TranscriptorGemini
@@ -106,6 +109,11 @@ def obtener_servicio() -> ServicioTriaje:
         extractor=ExtractorPorTipo(),
         almacenamiento=obtener_almacenamiento(),
         ingestor=Ingestor(transcriptor=TranscriptorGemini()),
+        llm_urgencia=ChatGoogleGenerativeAI(
+            model=variable("GEMINI_MODEL", MODELO_POR_DEFECTO),
+            google_api_key=variable("GEMINI_API_KEY"),
+            temperature=0,
+        ),
     )
 
 

@@ -36,6 +36,8 @@ sys.path.insert(0, str(RAIZ / "src"))
 
 from dotenv import load_dotenv  # noqa: E402
 
+from mediflow_agent.config import numero  # noqa: E402
+from mediflow_agent.limites import PEDIDOS_POR_MINUTO, LimitadorDeRitmo  # noqa: E402
 from mediflow_agent.schemas.models import (  # noqa: E402
     ClassificationResult,
     Doctor,
@@ -149,6 +151,8 @@ def _cargar_enrutamiento():
 def evaluar(simulado: bool) -> int:
     etiquetas = json.loads((CORPUS / "etiquetas.json").read_text(encoding="utf-8"))
 
+    limitador = None
+
     if simulado:
         clasificador, extractor = ClasificadorSimulado(), ExtractorSimulado()
         print("Modo SIMULADO: clasificador por palabras clave, sin llamar a Gemini.")
@@ -158,7 +162,16 @@ def evaluar(simulado: bool) -> int:
         from mediflow_agent.extraction.extractor import DocumentExtractor
 
         clasificador, extractor = DocumentClassifier(), DocumentExtractor()
-        print(f"Evaluando {len(etiquetas)} documentos con el modelo real.\n")
+
+        # La capa gratuita limita por MINUTO, no solo por dia. Sin esto, las
+        # 60 llamadas del corpus chocan contra el tope en los primeros
+        # segundos y el script muere con un 429.
+        tope = int(numero("MEDIFLOW_RPM", PEDIDOS_POR_MINUTO))
+        limitador = LimitadorDeRitmo(tope)
+
+        print(f"Evaluando {len(etiquetas)} documentos con el modelo real.")
+        print(f"Ritmo limitado a {tope} llamadas por minuto, asi que va a")
+        print(f"tardar unos {(len(etiquetas) * 2) / tope:.0f} minutos.\n")
 
     enrutar = _cargar_enrutamiento()
 
@@ -173,7 +186,12 @@ def evaluar(simulado: bool) -> int:
     for etiqueta in etiquetas:
         texto = (CORPUS / "documentos" / etiqueta["archivo"]).read_text(encoding="utf-8")
 
+        if limitador:
+            limitador.esperar_turno()
         clasificacion = clasificador.classify(texto)
+
+        if limitador:
+            limitador.esperar_turno()
         datos = extractor.extract(texto)
 
         # --- clasificacion ---

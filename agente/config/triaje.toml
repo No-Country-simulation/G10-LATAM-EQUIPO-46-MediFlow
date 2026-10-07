@@ -1,0 +1,46 @@
+# Reglas de triaje configurables sin tocar el codigo.
+#
+# Es lo que pide la tarea 3.2 ("umbrales configurables desde archivo") y
+# habilita el diferencial del enunciado: que un gestor hospitalario pueda
+# ajustar umbrales y destinos sin modificar el codigo fuente.
+#
+# Precedencia: variable de entorno > este archivo > valor por defecto.
+# Asi un despliegue puede sobreescribir un valor sin editar el archivo.
+
+[confianza]
+# Por debajo de este valor, el caso va a revision humana pase lo que pase.
+# Es un valor PROPUESTO, no medido. La calibracion con datos propios es la
+# tarea 4.2; cuando se mida, este es el numero que hay que mover.
+umbral = 0.70
+
+[urgencia]
+# Las dos vias de deteccion. Apagar una es posible pero desaconsejado:
+# medido sobre 95 frases clinicas, la lista sola dejaba escapar 28 de 30
+# cuadros descritos sin nombrar la patologia.
+usar_lista = true
+usar_modelo = true
+
+# Canales que, por si solos, elevan la prioridad a Prioritario. Que un
+# documento venga de guardia es una senal, no una prueba: no lo vuelve
+# Urgente por si mismo.
+canales_prioritarios = ["guardia_emergencias", "urgencias", "emergencias"]
+
+[rendimiento]
+# Presupuesto de tiempo para clasificar y extraer un documento, en segundos.
+# No es un limite tecnico: es el requisito clinico. Un documento de guardia
+# que tarda un minuto en enrutarse no sirve.
+presupuesto_segundos = 10.0
+
+# Tope de llamadas por minuto al modelo. La capa gratuita de Gemini limita a
+# 15 por minuto; pasarse devuelve 429 y los reintentos tambien cuentan.
+pedidos_por_minuto = 15
+
+[destinos]
+# A donde va cada tipo de documento cuando no hay urgencia ni baja confianza.
+# Un tipo que no figure aca escala a revision humana en lugar de elegir un
+# destino arbitrario.
+receta_medica = "Farmacia_Hospitalaria"
+orden_procedimiento = "Auditoria_Autorizaciones"
+informe_estudio_diagnostico = "Historia_Clinica_Electronica"
+epicrisis = "Historia_Clinica_Electronica"
+certificado_medico = "Historia_Clinica_Electronica"

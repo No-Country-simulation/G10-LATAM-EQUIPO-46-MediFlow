@@ -24,7 +24,7 @@
   "decision_enrutamiento": {
     "destino_principal": "Cola_Emergencia_Medica",
     "requiere_auditoria_humana": false,
-    "justificacion_enrutamiento": "Hallazgo critico detectado en el texto clinico (tromboembolismo). Se prioriza la atencion inmediata por encima de la ruta habitual del tipo de documento.",
+    "justificacion_enrutamiento": "Hallazgo critico detectado (via: lista). La deteccion por terminos encontro tromboembolismo pulmonar (respiratorio). Se prioriza la atencion inmediata por encima de la ruta habitual del tipo de documento.",
     "notificacion_generada": {
       "canal": "Alerta_Guardia_Medica",
       "mensaje": "ALERTA URGENTE: hallazgo critico en el documento DOC-GEN del paciente Carlos Eduardo Mendes. Requiere revision clinica inmediata."
