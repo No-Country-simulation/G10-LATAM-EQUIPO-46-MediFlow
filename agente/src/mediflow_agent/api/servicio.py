@@ -71,11 +71,17 @@ class ServicioTriaje:
         extractor,
         almacenamiento: AlmacenamientoDocumentos,
         ingestor: Ingestor | None = None,
+        llm_urgencia=None,
     ):
         self._clasificador = clasificador
         self._extractor = extractor
         self._almacenamiento = almacenamiento
         self._ingestor = ingestor or Ingestor()
+
+        # Segunda via de la deteccion de urgencia. Sin modelo, el sistema
+        # sigue triando con la via por lista: es el piso que queda en pie si
+        # se agota la cuota.
+        self._llm_urgencia = llm_urgencia
 
     # -- pasos ----------------------------------------------------------
 
@@ -235,6 +241,7 @@ class ServicioTriaje:
             datos=datos,
             canal_origen=solicitud.canal_origen,
             documento=documento,
+            llm=self._llm_urgencia,
         )
 
         motivo = None

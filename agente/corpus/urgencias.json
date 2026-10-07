@@ -1,0 +1,477 @@
+[
+  {
+    "texto": "CONCLUSION: Cuadro compatible con Tromboembolismo Pulmonar Agudo.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Hallazgos compatibles con infarto agudo de miocardio de cara anterior.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Imagen hiperdensa en cisternas compatible con hemorragia subaracnoidea.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Paciente en shock septico, requiere soporte vasoactivo.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Sospecha de diseccion aortica. Paciente hipotenso.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Se constata neumotorax a tension en hemitorax derecho.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Cetoacidosis diabetica con acidosis severa.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Status epileptico de mas de treinta minutos de evolucion.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Abdomen agudo con neumoperitoneo en la radiografia.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Eclampsia: convulsiones en gestante de 34 semanas.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Politraumatismo grave tras colision vehicular.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Neutropenia febril en paciente oncologico.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Anafilaxia tras administracion de contraste yodado.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Isquemia mesenterica aguda confirmada por angiotomografia.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Hemorragia digestiva alta con sangrado activo.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Fascitis necrotizante en miembro inferior izquierdo.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Meningitis bacteriana confirmada por puncion lumbar.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Insuficiencia respiratoria aguda con hipoxemia severa.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Taponamiento cardiaco secundario a derrame pericardico.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Sindrome HELLP en puerperio inmediato.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Rotura uterina durante trabajo de parto.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Compresion medular por metastasis vertebral.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Intoxicacion por monoxido de carbono.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Edema agudo de pulmon con saturacion critica.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Perforacion intestinal con peritonitis difusa.",
+    "urgente": true,
+    "grupo": "con_termino"
+  },
+  {
+    "texto": "Obstruccion completa de la arteria descendente anterior en su tercio proximal.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Defecto de llenado en arteria pulmonar principal derecha.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Coleccion hiperdensa extraaxial con efecto de masa sobre el ventriculo lateral.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Pupila derecha de 6 mm que no responde a la luz.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "El paciente no responde a estimulos verbales ni dolorosos.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Presion arterial 70/40 pese a reposicion con cristaloides.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Lactato serico de 6.8 mmol/L en ascenso.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Potasio serico 7.2 mEq/L con ondas T picudas en el trazado.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Glucemia capilar de 28 mg/dL con sudoracion profusa.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "pH arterial 7.08 con bicarbonato de 8 mEq/L.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Hemoglobina de 4.1 g/dL con palidez cutaneomucosa marcada.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Plaquetas en 8.000 por mm3 con gingivorragia espontanea.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Frecuencia cardiaca fetal sostenida en 85 latidos por minuto.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Liquido libre en los cuatro cuadrantes en la ecografia abdominal.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Aire libre subdiafragmatico en la placa de torax de pie.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Asa intestinal dilatada con ausencia de realce de la pared.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Dilatacion de 6.2 cm en aorta abdominal con signos de fisura.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Trazado con QRS ancho y frecuencia de 210 por minuto.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Saturacion de oxigeno en 78 por ciento con mascara de reservorio.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Quemaduras en el 45 por ciento de la superficie corporal.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Hollin en orofaringe y disfonia tras incendio en espacio cerrado.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Ausencia de pulsos distales con extremidad fria y palida.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Desviacion de estructuras de la linea media de 9 mm.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Cuello uterino con procidencia de asa de cordon.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Recien nacido con puntaje de 3 al primer minuto.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Troponina ultrasensible de 4.500 ng/L con dolor precordial.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Rigidez de nuca con fotofobia y fiebre de 39.5 grados.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Paciente con tres episodios de vomito en borra de cafe.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "INR de 8.4 con hematoma espontaneo en muslo.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Imposibilidad de hablar y hemiparesia derecha de inicio subito.",
+    "urgente": true,
+    "grupo": "sin_termino"
+  },
+  {
+    "texto": "Control de rutina sin particularidades.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Estudio dentro de parametros normales para la edad.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Se solicita hemograma completo y perfil lipidico ambulatorio.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Radiografia de torax sin alteraciones significativas.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Litiasis vesicular unica. Control ambulatorio.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Certifico reposo laboral por tres dias por lumbalgia aguda.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Parto vaginal eutocico de termino sin complicaciones.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Apta para la practica de actividad deportiva recreativa.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Rp/ Amoxicilina 500 mg cada 8 horas por 7 dias.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Espirometria con valores dentro de limites esperados.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Ecografia abdominal: higado de ecoestructura conservada.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Control post operatorio a los treinta dias, herida en buen estado.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Se indica kinesiologia motora tres veces por semana.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Solicita resonancia de rodilla por sospecha de lesion meniscal.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Glucemia en ayunas de 92 mg/dL.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Paciente refiere mejoria del dolor con el tratamiento indicado.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Se programa colecistectomia laparoscopica electiva.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Audiometria sin hipoacusia significativa.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Control de embarazo de 22 semanas, evolucion normal.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "Se renueva receta de medicacion cronica sin cambios.",
+    "urgente": false,
+    "grupo": "rutina"
+  },
+  {
+    "texto": "El estudio descarta infarto agudo de miocardio.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Sin signos de hemorragia intracraneal.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "No se observa tromboembolismo pulmonar.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Antecedente de infarto hace quince anos, asintomatico.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Control anual en paciente con antecedente de sepsis en 2019.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Se descarta perforacion intestinal.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Ausencia de neumotorax en la placa de control.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Paciente niega perdida de conciencia.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Estudio solicitado para descartar diseccion aortica.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Sin evidencia de metastasis a distancia.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Evolucion favorable del shock septico tratado el mes pasado.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Alta tras resolucion de cetoacidosis diabetica.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Riesgo quirurgico bajo, sin compromiso vital.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "No presenta convulsiones desde hace dos anos.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Se indica control para prevenir una crisis hipertensiva.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Informe previo de hemorragia digestiva ya resuelta.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Charla de prevencion sobre signos de alarma de infarto.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Paciente en seguimiento por antecedente de embolia pulmonar.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Sin criterios de insuficiencia respiratoria.",
+    "urgente": false,
+    "grupo": "trampa"
+  },
+  {
+    "texto": "Ecografia normal, se descarta embarazo ectopico.",
+    "urgente": false,
+    "grupo": "trampa"
+  }
+]

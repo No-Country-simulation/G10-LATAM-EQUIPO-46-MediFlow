@@ -24,6 +24,12 @@ from mediflow_agent.storage.local import AlmacenamientoLocal
 
 from conftest import TranscriptorDoble, construir_imagen, construir_pdf
 
+TEXTO_RUTINA = (
+    "OBRA SOCIAL UNIFICADA - ORDEN DE ESTUDIOS COMPLEMENTARIOS. Paciente: "
+    "Adriana Paredes, 45 anos. Se solicita hemograma completo y glucemia en "
+    "ayunas. Caracter: ambulatorio, no urgente. Dr. Guillermo Segovia MP 30958."
+)
+
 TEXTO_TEP = (
     "HOSPITAL SANTA LUCIA - INFORME DE ESTUDIO RADIOLOGICO. Paciente: Carlos "
     "Eduardo Mendes, 52 anos. Medico Solicitante: Dra. Renata Silveira MP "
@@ -169,7 +175,14 @@ def test_un_caso_de_rutina_va_al_prefijo_de_rutina(cliente):
                 procedure="Hemograma completo ambulatorio",
             )
         ),
-    ).post("/triaje", json=_solicitud(documento_id="DOC-RUT-1", canal_origen="Recepcion"))
+    ).post(
+        "/triaje",
+        json=_solicitud(
+            documento_id="DOC-RUT-1",
+            canal_origen="Recepcion",
+            documento_texto=TEXTO_RUTINA,
+        ),
+    )
 
     cuerpo = r.json()
     assert cuerpo["clasificacion"]["nivel_prioridad"] == "Rutina"
@@ -189,7 +202,14 @@ def test_la_confianza_baja_va_a_auditoria_humana(cliente):
             ClassificationResult(document_type="receta_medica", confidence=0.35)
         ),
         extractor=ExtractorDoble(ExtractedData(patient=Patient(name="Luis Paredes"))),
-    ).post("/triaje", json=_solicitud(documento_id="DOC-AMB-1", canal_origen="Recepcion"))
+    ).post(
+        "/triaje",
+        json=_solicitud(
+            documento_id="DOC-AMB-1",
+            canal_origen="Recepcion",
+            documento_texto=TEXTO_RUTINA,
+        ),
+    )
 
     cuerpo = r.json()
     assert cuerpo["status"] == "derivado_revision_humana"
@@ -205,7 +225,10 @@ def test_la_confianza_baja_va_a_auditoria_humana(cliente):
 def test_si_el_modelo_falla_el_caso_escala_y_no_se_aprueba_solo(cliente):
     r = cliente(
         clasificador=ClasificadorDoble(error=RuntimeError("cuota agotada"))
-    ).post("/triaje", json=_solicitud(documento_id="DOC-ERR-1"))
+    ).post(
+        "/triaje",
+        json=_solicitud(documento_id="DOC-ERR-1", documento_texto=TEXTO_RUTINA),
+    )
 
     assert r.status_code == 200, "un fallo del modelo no puede tumbar la API"
     cuerpo = r.json()

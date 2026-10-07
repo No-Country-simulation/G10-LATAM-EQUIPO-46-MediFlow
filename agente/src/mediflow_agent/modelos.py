@@ -31,4 +31,8 @@ MODELO_POR_DEFECTO = "gemini-3.5-flash-lite"
 # Presupuesto de tiempo para clasificar y extraer un documento, en segundos.
 # No es un limite tecnico: es el requisito clinico. Un documento de guardia
 # que tarda un minuto en enrutarse no sirve.
-PRESUPUESTO_SEGUNDOS = 10.0
+from mediflow_agent.config import ajuste  # noqa: E402
+
+PRESUPUESTO_SEGUNDOS = ajuste(
+    "rendimiento", "presupuesto_segundos", 10.0, "MEDIFLOW_PRESUPUESTO"
+)

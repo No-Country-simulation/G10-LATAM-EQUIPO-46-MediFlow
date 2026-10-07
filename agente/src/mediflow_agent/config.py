@@ -53,3 +53,59 @@ def numero(nombre: str, defecto: float) -> float:
         return float(crudo)
     except ValueError:
         return defecto
+
+
+# --------------------------------------------------------------------------
+# Configuracion desde archivo
+# --------------------------------------------------------------------------
+
+import tomllib  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+ARCHIVO_TRIAJE = Path(__file__).resolve().parent.parent.parent / "config" / "triaje.toml"
+
+
+def cargar_archivo(ruta: Path | None = None) -> dict:
+    """Lee `config/triaje.toml`. Devuelve {} si no existe o esta roto.
+
+    Un archivo de configuracion ausente o mal escrito NO puede impedir que el
+    sistema triee documentos: se cae a los valores por defecto y se sigue.
+    Lo contrario significaria que un error de tipeo en un TOML deja sin
+    atender una guardia.
+    """
+    archivo = ruta or ARCHIVO_TRIAJE
+
+    if not archivo.is_file():
+        return {}
+
+    try:
+        with open(archivo, "rb") as fh:
+            return tomllib.load(fh)
+    except (tomllib.TOMLDecodeError, OSError):
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "No se pudo leer %s; se usan los valores por defecto.", archivo
+        )
+        return {}
+
+
+def ajuste(seccion: str, clave: str, defecto, variable_entorno: str | None = None):
+    """Valor de configuracion, con precedencia entorno > archivo > defecto."""
+    if variable_entorno:
+        crudo = variable(variable_entorno)
+
+        if crudo is not None:
+            if isinstance(defecto, bool):
+                return crudo.strip().lower() in ("1", "true", "si", "yes")
+            if isinstance(defecto, (int, float)):
+                try:
+                    return type(defecto)(crudo)
+                except ValueError:
+                    pass
+            else:
+                return crudo
+
+    valor = cargar_archivo().get(seccion, {}).get(clave)
+
+    return defecto if valor is None else valor

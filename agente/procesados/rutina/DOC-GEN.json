@@ -4,7 +4,7 @@
   "clasificacion": {
     "tipo_documento": "Informe de Estudio Diagnostico",
     "especialidad": "Radiologia / Neumonologia",
-    "nivel_prioridad": "Urgente",
+    "nivel_prioridad": "Rutina",
     "score_confianza_clasificacion": 0.99
   },
   "datos_extraidos": {
@@ -22,17 +22,14 @@
     "medicamentos": null
   },
   "decision_enrutamiento": {
-    "destino_principal": "Cola_Emergencia_Medica",
+    "destino_principal": "Historia_Clinica_Electronica",
     "requiere_auditoria_humana": false,
-    "justificacion_enrutamiento": "Hallazgo critico detectado (via: lista). La deteccion por terminos encontro tromboembolismo pulmonar (respiratorio). Se prioriza la atencion inmediata por encima de la ruta habitual del tipo de documento.",
-    "notificacion_generada": {
-      "canal": "Alerta_Guardia_Medica",
-      "mensaje": "ALERTA URGENTE: hallazgo critico en el documento DOC-GEN del paciente Carlos Eduardo Mendes. Requiere revision clinica inmediata."
-    }
+    "justificacion_enrutamiento": "Documento clasificado como 'informe_estudio_diagnostico' con confianza 0.99, por encima del umbral (0.70). Sin hallazgos criticos en el texto. Se deriva al destino habitual para este tipo de documento.",
+    "notificacion_generada": null
   },
   "almacenamiento_oci": {
     "bucket": "mediflow-local",
-    "ruta_objeto": "procesados/urgentes/DOC-GEN.json",
+    "ruta_objeto": "procesados/rutina/DOC-GEN.json",
     "status_backup": "exito"
   }
 }
