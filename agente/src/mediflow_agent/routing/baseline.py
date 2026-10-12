@@ -26,6 +26,11 @@ import unicodedata
 from mediflow_agent.config import ajuste
 
 from mediflow_agent.ingestion.base import DocumentoNormalizado
+from mediflow_agent.routing.reglas_documento import (
+    campos_faltantes,
+    es_certificado_de_junta,
+    es_receta_controlada,
+)
 from mediflow_agent.routing.urgencia import detectar as detectar_urgencia
 from mediflow_agent.schemas.models import ClassificationResult, ExtractedData
 from mediflow_agent.serialization.contract import (
@@ -95,6 +100,7 @@ def decidir_enrutamiento(
     umbral_confianza: float = UMBRAL_CONFIANZA,
     documento: DocumentoNormalizado | None = None,
     llm: object | None = None,
+    especifico: object | None = None,
 ) -> tuple[NivelPrioridad, DecisionEnrutamientoContrato, StatusTriaje]:
     """Decide prioridad, destino y estado del triaje.
 
@@ -205,7 +211,7 @@ def decidir_enrutamiento(
             "derivado_revision_humana",
         )
 
-    # ---- 5. Ruta normal por tipo de documento. ----------------------------
+    # ---- 5. Destino segun el tipo. Un tipo sin ruta escala. ---------------
     destino = DESTINO_POR_TIPO.get(clasificacion.document_type)
 
     if destino is None:
@@ -227,6 +233,70 @@ def decidir_enrutamiento(
             "derivado_revision_humana",
         )
 
+    # ---- 6. Datos minimos para actuar sin un humano. ----------------------
+    # Un documento solo sigue su ruta automatica si trae lo que su destino
+    # necesita para actuar. Una receta sin matricula no puede ir sola a
+    # farmacia: nadie puede verificar que la firmo un profesional habilitado.
+    faltantes = campos_faltantes(clasificacion.document_type, datos)
+
+    if faltantes:
+        detalle = "; ".join(f"falta {f.campo} ({f.motivo})" for f in faltantes)
+
+        return (
+            "Prioritario" if canal_prioritario else "Rutina",
+            DecisionEnrutamientoContrato(
+                destino_principal="Cola_Revision_Humana",
+                requiere_auditoria_humana=True,
+                justificacion_enrutamiento=(
+                    "Al documento le faltan datos que su destino necesita para "
+                    f"actuar: {detalle}. Se deriva a un auditor humano para que "
+                    "los complete; los campos ausentes quedan en null."
+                ),
+                notificacion_generada=None,
+            ),
+            "derivado_revision_humana",
+        )
+
+    # ---- 7. Receta controlada: exige verificar la firma. ------------------
+    # Que sea controlada NO la vuelve urgente: la vuelve no automatizable.
+    if es_receta_controlada(especifico):
+        return (
+            "Prioritario",
+            DecisionEnrutamientoContrato(
+                destino_principal="Cola_Revision_Humana",
+                requiere_auditoria_humana=True,
+                justificacion_enrutamiento=(
+                    "Receta controlada: exige verificar la firma del profesional "
+                    "antes de dispensar. Se deriva a revision humana. Ser "
+                    "controlada no la convierte en una emergencia."
+                ),
+                notificacion_generada=None,
+            ),
+            "derivado_revision_humana",
+        )
+
+    # ---- 8. Certificado para junta evaluadora. ----------------------------
+    # Tiene consecuencias administrativas y previsionales, y el proyecto aun
+    # no acordo un destino propio. Hasta entonces lo mira una persona.
+    if clasificacion.document_type == "certificado_medico" and es_certificado_de_junta(
+        texto
+    ):
+        return (
+            "Prioritario",
+            DecisionEnrutamientoContrato(
+                destino_principal="Cola_Revision_Humana",
+                requiere_auditoria_humana=True,
+                justificacion_enrutamiento=(
+                    "Certificado destinado a una junta evaluadora. Todavia no "
+                    "hay un destino acordado para este tipo, asi que se deriva "
+                    "a revision humana en lugar de archivarlo solo."
+                ),
+                notificacion_generada=None,
+            ),
+            "derivado_revision_humana",
+        )
+
+    # ---- 9. Ruta normal por tipo de documento. ----------------------------
     return (
         "Prioritario" if canal_prioritario else "Rutina",
         DecisionEnrutamientoContrato(
@@ -235,8 +305,8 @@ def decidir_enrutamiento(
             justificacion_enrutamiento=(
                 f"Documento clasificado como '{clasificacion.document_type}' con "
                 f"confianza {clasificacion.confidence:.2f}, por encima del umbral "
-                f"({umbral_confianza:.2f}). Sin hallazgos criticos en el texto. "
-                f"Se deriva al destino habitual para este tipo de documento."
+                f"({umbral_confianza:.2f}). Sin hallazgos criticos y con los datos "
+                "minimos completos. Se deriva al destino habitual para este tipo."
             ),
             notificacion_generada=None,
         ),

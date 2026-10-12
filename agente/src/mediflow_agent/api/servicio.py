@@ -151,16 +151,17 @@ class ServicioTriaje:
             resultado = self._extractor.extract(texto, tipo_documento)
         except TypeError:
             # Extractor generico: no acepta el tipo.
-            return self._extractor.extract(texto), ()
+            return self._extractor.extract(texto), (), None
 
         datos = getattr(resultado, "datos", resultado)
         avisos = tuple(getattr(resultado, "avisos", ()))
+        # El objeto especifico por tipo trae campos que la forma comun no
+        # tiene, como es_receta_controlada, y el enrutamiento los necesita.
+        especifico = getattr(resultado, "especifico", None)
 
-        return datos, avisos
+        return datos, avisos, especifico
 
-    def _analizar(
-        self, texto: str
-    ) -> tuple[ClassificationResult, ExtractedData, tuple[str, ...], bool]:
+    def _analizar(self, texto: str):
         """Clasifica y despues extrae segun el tipo encontrado.
 
         **Por que en serie y no en paralelo.** El extractor por tipo necesita
@@ -184,7 +185,9 @@ class ServicioTriaje:
 
         try:
             clasificacion = self._clasificador.classify(texto)
-            datos, avisos = self._extraer(texto, clasificacion.document_type)
+            datos, avisos, especifico = self._extraer(
+                texto, clasificacion.document_type
+            )
 
             transcurrido = time.perf_counter() - inicio
 
@@ -198,7 +201,7 @@ class ServicioTriaje:
                     PRESUPUESTO_SEGUNDOS,
                 )
 
-            return clasificacion, datos, avisos, False
+            return clasificacion, datos, avisos, especifico, False
 
         except Exception as err:  # noqa: BLE001 - cualquier fallo escala igual
             _log.exception("Fallo el modelo al procesar el documento: %s", err)
@@ -207,6 +210,7 @@ class ServicioTriaje:
                 ClassificationResult(document_type="desconocido", confidence=0.0),
                 ExtractedData(),
                 (),
+                None,
                 True,
             )
 
@@ -229,11 +233,16 @@ class ServicioTriaje:
             )
             datos = ExtractedData()
             avisos_extraccion: tuple[str, ...] = ()
+            especifico = None
             fallo_modelo = False
         else:
-            clasificacion, datos, avisos_extraccion, fallo_modelo = self._analizar(
-                documento.texto
-            )
+            (
+                clasificacion,
+                datos,
+                avisos_extraccion,
+                especifico,
+                fallo_modelo,
+            ) = self._analizar(documento.texto)
 
         nivel_prioridad, decision, status = decidir_enrutamiento(
             documento_id=solicitud.documento_id,
@@ -242,6 +251,7 @@ class ServicioTriaje:
             canal_origen=solicitud.canal_origen,
             documento=documento,
             llm=self._llm_urgencia,
+            especifico=especifico,
         )
 
         motivo = None

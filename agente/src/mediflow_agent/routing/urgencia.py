@@ -140,8 +140,23 @@ def _esta_negado(texto: str, posicion: int) -> bool:
     return any(f" {n} " in frase for n in NEGADORES)
 
 
+# Un unico patron con todos los terminos, delimitado por PALABRA COMPLETA.
+#
+# Comparar subcadenas parecia alcanzar hasta que una prueba mostro que "iam"
+# —la sigla de infarto agudo de miocardio— coincide dentro de "Myriam". Lo
+# mismo pasa con "coma" dentro de "comarca" o "cid" dentro de "acidosis". Con
+# 185 terminos, las siglas cortas se vuelven un generador silencioso de
+# falsos positivos.
+#
+# Los terminos van de mas largo a mas corto para que la alternancia prefiera
+# "shock septico" sobre "shock".
+_PATRON_TERMINOS = re.compile(
+    r"\b(?:" + "|".join(re.escape(t) for t in TERMINOS_CRITICOS) + r")\b"
+)
+
+
 def detectar_por_lista(texto: str) -> tuple[str, ...]:
-    """Terminos criticos presentes y NO negados.
+    """Terminos criticos presentes como palabra completa y NO negados.
 
     Sin el filtro de negacion, "el estudio descarta infarto" se enruta a la
     cola de emergencia. Medido: las 20 frases de negacion del banco disparaban
@@ -150,14 +165,13 @@ def detectar_por_lista(texto: str) -> tuple[str, ...]:
     normalizado = _normalizar(texto)
     encontrados = []
 
-    for termino in TERMINOS_CRITICOS:
-        posicion = normalizado.find(termino)
+    for coincidencia in _PATRON_TERMINOS.finditer(normalizado):
+        termino = coincidencia.group(0)
 
-        while posicion != -1:
-            if not _esta_negado(normalizado, posicion):
-                encontrados.append(termino)
-                break
-            posicion = normalizado.find(termino, posicion + 1)
+        if termino not in encontrados and not _esta_negado(
+            normalizado, coincidencia.start()
+        ):
+            encontrados.append(termino)
 
     # Se descartan los terminos contenidos en otro ya encontrado, para no
     # reportar "shock" junto a "shock septico".

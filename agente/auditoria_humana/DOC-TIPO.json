@@ -1,0 +1,35 @@
+{
+  "status": "derivado_revision_humana",
+  "documento_id": "DOC-TIPO",
+  "clasificacion": {
+    "tipo_documento": "Receta Medica",
+    "especialidad": null,
+    "nivel_prioridad": "Rutina",
+    "score_confianza_clasificacion": 0.9
+  },
+  "datos_extraidos": {
+    "paciente": {
+      "nombre": null,
+      "edad": null
+    },
+    "medico_solicitante": {
+      "nombre": null,
+      "matricula": null
+    },
+    "estudio_realizado": null,
+    "diagnostico_principal": null,
+    "cie10_sugerido": null,
+    "medicamentos": null
+  },
+  "decision_enrutamiento": {
+    "destino_principal": "Cola_Revision_Humana",
+    "requiere_auditoria_humana": true,
+    "justificacion_enrutamiento": "Al documento le faltan datos que su destino necesita para actuar: falta paciente.nombre (sin saber a quien se dispensa); falta medico.nombre (sin saber quien prescribe); falta medico.matricula (sin matricula no se puede verificar la habilitacion); falta medicamentos (sin farmacos no hay nada que dispensar). Se deriva a un auditor humano para que los complete; los campos ausentes quedan en null.",
+    "notificacion_generada": null
+  },
+  "almacenamiento_oci": {
+    "bucket": "mediflow-local",
+    "ruta_objeto": "auditoria_humana/DOC-TIPO.json",
+    "status_backup": "exito"
+  }
+}

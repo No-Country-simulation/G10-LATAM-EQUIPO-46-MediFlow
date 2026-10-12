@@ -24,7 +24,7 @@
   "decision_enrutamiento": {
     "destino_principal": "Historia_Clinica_Electronica",
     "requiere_auditoria_humana": false,
-    "justificacion_enrutamiento": "Documento clasificado como 'informe_estudio_diagnostico' con confianza 0.99, por encima del umbral (0.70). Sin hallazgos criticos en el texto. Se deriva al destino habitual para este tipo de documento.",
+    "justificacion_enrutamiento": "Documento clasificado como 'informe_estudio_diagnostico' con confianza 0.99, por encima del umbral (0.70). Sin hallazgos criticos y con los datos minimos completos. Se deriva al destino habitual para este tipo.",
     "notificacion_generada": null
   },
   "almacenamiento_oci": {

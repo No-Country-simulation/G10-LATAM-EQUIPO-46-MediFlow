@@ -172,6 +172,7 @@ def test_un_caso_de_rutina_va_al_prefijo_de_rutina(cliente):
         extractor=ExtractorDoble(
             ExtractedData(
                 patient=Patient(name="Ana Gomez", age=31),
+                doctor=Doctor(name="Dr. Guillermo Segovia", license_number="30958"),
                 procedure="Hemograma completo ambulatorio",
             )
         ),
