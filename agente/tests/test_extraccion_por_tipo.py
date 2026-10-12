@@ -13,14 +13,15 @@ from mediflow_agent.extraction.esquemas_por_tipo import (
     a_datos_comunes,
 )
 from mediflow_agent.extraction.extractor_por_tipo import ExtractorPorTipo
-from mediflow_agent.schemas.models import Doctor, Patient
+from mediflow_agent.schemas.models import Doctor, ExtractedData, Patient
 
 
 class LlmDoble:
     """Doble del modelo. Devuelve lo que se le indique, sin llamar a nadie."""
 
-    def __init__(self, respuesta):
+    def __init__(self, respuesta, respuesta_generica=None):
         self.respuesta = respuesta
+        self.respuesta_generica = respuesta_generica or ExtractedData()
         self.prompts: list[str] = []
         self.esquemas: list[type] = []
 
@@ -30,6 +31,13 @@ class LlmDoble:
 
     def invoke(self, prompt):
         self.prompts.append(prompt)
+
+        # La via generica pide ExtractedData, no el esquema del tipo. Se le
+        # responde con la forma que corresponde para que el doble siga
+        # sirviendo cuando se dispara la red de seguridad.
+        if self.esquemas[-1] is ExtractedData:
+            return self.respuesta_generica
+
         return self.respuesta
 
 
@@ -96,7 +104,7 @@ def test_una_receta_sin_medicamentos_deja_el_campo_en_null():
 # --- Extractor ------------------------------------------------------------
 
 def test_cada_tipo_usa_su_propio_esquema():
-    llm = LlmDoble(DatosReceta())
+    llm = LlmDoble(DatosReceta(medicamentos=[Medicamento(nombre="Metformina")]))
     ExtractorPorTipo(llm=llm).extract("texto", "receta_medica")
 
     assert llm.esquemas == [DatosReceta]
@@ -121,14 +129,49 @@ def test_todos_los_prompts_llevan_las_reglas_que_no_se_negocian():
         assert "[ilegible]" in prompt, f"{tipo}: falta la regla de lo ilegible"
 
 
-def test_un_tipo_desconocido_no_extrae_nada_y_avisa():
-    llm = LlmDoble(DatosReceta())
+def test_un_tipo_desconocido_se_extrae_con_el_esquema_generico():
+    # Antes no se extraia nada. El problema de eso: un documento fuera de la
+    # taxonomia (una hoja de triaje, una interconsulta) salia con todos los
+    # campos vacios aunque el texto los tuviera a la vista.
+    llm = LlmDoble(
+        DatosReceta(),
+        respuesta_generica=ExtractedData(diagnosis="Sindrome coronario agudo"),
+    )
     resultado = ExtractorPorTipo(llm=llm).extract("texto", "desconocido")
 
-    assert llm.prompts == [], "no se debe llamar al modelo sin esquema"
-    assert resultado.datos.patient.name is None
-    assert resultado.avisos
-    assert "revision humana" in resultado.avisos[0]
+    assert llm.esquemas == [ExtractedData]
+    assert resultado.datos.diagnosis == "Sindrome coronario agudo"
+    assert "generico" in resultado.avisos[0]
+
+
+def test_si_el_esquema_del_tipo_no_cosecha_nada_se_reintenta_sin_suponer_el_tipo():
+    # El caso real: una hoja de triaje clasificada como epicrisis. Al prompt
+    # de epicrisis se le pide el diagnostico "de egreso", que no existe, y el
+    # modelo responde null a todo. La red lo rescata.
+    llm = LlmDoble(
+        ESQUEMA_POR_TIPO["epicrisis"](),
+        respuesta_generica=ExtractedData(
+            patient=Patient(name="Gomez Perez, Juan Carlos", age=45),
+            diagnosis="Posible sindrome coronario agudo",
+        ),
+    )
+    resultado = ExtractorPorTipo(llm=llm).extract("hoja de triaje", "epicrisis")
+
+    assert resultado.datos.diagnosis == "Posible sindrome coronario agudo"
+    assert resultado.datos.patient.age == 45
+    assert "no corresponda" in resultado.avisos[0]
+    assert llm.esquemas[-1] is ExtractedData
+
+
+def test_si_el_esquema_del_tipo_cosecha_algo_no_se_vuelve_a_llamar_al_modelo():
+    # La red no puede costar una llamada extra en el camino normal: la cuota
+    # gratuita son 15 pedidos por minuto.
+    llm = LlmDoble(DatosInforme(estudio="Angio-TC de torax"))
+    resultado = ExtractorPorTipo(llm=llm).extract("t", "informe_estudio_diagnostico")
+
+    assert len(llm.prompts) == 1
+    assert resultado.datos.study == "Angio-TC de torax"
+    assert resultado.avisos == ()
 
 
 # --- Verificacion del CIE-10 dentro de la extraccion ----------------------
@@ -158,7 +201,7 @@ def test_un_cie10_mal_escrito_se_normaliza():
 
 
 def test_sin_cie10_no_se_genera_un_aviso_innecesario():
-    llm = LlmDoble(DatosInforme())
+    llm = LlmDoble(DatosInforme(estudio="Radiografia de torax"))
     resultado = ExtractorPorTipo(llm=llm).extract("t", "informe_estudio_diagnostico")
 
     assert resultado.datos.suggested_icd10 is None

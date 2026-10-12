@@ -9,6 +9,36 @@ from mediflow_agent.schemas.models import ExtractedData
 load_dotenv()
 
 
+# El prompt vive aparte porque lo usan dos caminos: esta clase, que extrae sin
+# conocer el tipo, y la red de seguridad de ExtractorPorTipo, que recurre a el
+# cuando el esquema del tipo no encajo con el documento.
+def prompt_generico(texto: str) -> str:
+    """Pide los campos comunes sin suponer de que clase de documento se trata."""
+    return f"""
+                    Eres un extractor de información para el sistema MediFlow.
+
+                    Extrae únicamente información que aparezca explícitamente
+                    en el documento.
+
+                    Reglas importantes:
+
+                        1. NO inventes datos.
+                        2. Si un dato no aparece, utiliza null.
+                        3. No conviertas una inferencia médica en un hecho.
+                        4. El diagnóstico debe ser extraído únicamente si aparece
+                        explícitamente en el documento.
+                        5. suggested_icd10 es solamente una sugerencia y debe ser null
+                        si no existe evidencia suficiente.
+                        6. Conserva los nombres y datos tal como aparecen cuando sea posible.
+                        7. Extrae medicamentos, estudios y procedimientos únicamente
+                        si aparecen en el documento.
+
+                    Documento:
+
+                    {texto}
+                """
+
+
 class DocumentExtractor:
 
     def __init__(self):
@@ -31,31 +61,4 @@ class DocumentExtractor:
         )
 
     def extract(self, document_text: str) -> ExtractedData:
-
-        prompt = f"""
-                    Eres un extractor de información para el sistema MediFlow.
-
-                    Extrae únicamente información que aparezca explícitamente
-                    en el documento.
-
-                    Reglas importantes:
-
-                        1. NO inventes datos.
-                        2. Si un dato no aparece, utiliza null.
-                        3. No conviertas una inferencia médica en un hecho.
-                        4. El diagnóstico debe ser extraído únicamente si aparece
-                        explícitamente en el documento.
-                        5. suggested_icd10 es solamente una sugerencia y debe ser null
-                        si no existe evidencia suficiente.
-                        6. Conserva los nombres y datos tal como aparecen cuando sea posible.
-                        7. Extrae medicamentos, estudios y procedimientos únicamente
-                        si aparecen en el documento.
-
-                    Documento:
-
-                    {document_text}
-                """
-
-        result = self.structured_llm.invoke(prompt)
-
-        return result
+        return self.structured_llm.invoke(prompt_generico(document_text))
