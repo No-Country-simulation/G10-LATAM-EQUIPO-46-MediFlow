@@ -180,5 +180,5 @@ documentación y demostración.
 | Repositorio              | https://github.com/No-Country-simulation/G10-LATAM-EQUIPO-46-MediFlow |
 | Plan de ejecución        | [`docs/index.html`](docs/index.html) (se abre local) |
 | Video demo               | *(completar, semana 5)* |
-| Despliegue               | *(completar)* |
+| Despliegue               | http://159.112.180.217 (OCI Compute Always Free) |
 

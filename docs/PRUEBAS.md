@@ -218,11 +218,14 @@ MEDIFLOW_BUCKET=bucket-hackaton-01
 
 ## Prueba 7 · El despliegue público
 
-Instrucciones completas en
+La página está en **http://159.112.180.217** (OCI Compute Always Free).
+Probá ahí los mismos puntos de la Prueba 4: no hace falta instalar nada.
+
+Instrucciones completas de cómo se montó en
 [`infrastructure/README.md`](../infrastructure/README.md).
 
 ```powershell
-curl http://LA_IP_PUBLICA/salud
+curl http://159.112.180.217/salud
 ```
 
 **Esperado:** `{"status":"ok","servicio":"mediflow-triaje"}`.
