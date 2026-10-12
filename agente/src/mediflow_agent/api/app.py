@@ -27,6 +27,10 @@ from fastapi import (
     status as http_status,
 )
 
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+from mediflow_agent.api.auditoria import Correcciones, ServicioAuditoria
 from mediflow_agent.api.servicio import ServicioTriaje
 from mediflow_agent.config import variable
 from mediflow_agent.modelos import MODELO_POR_DEFECTO
@@ -117,6 +121,114 @@ def obtener_servicio() -> ServicioTriaje:
     )
 
 
+ESTATICOS = Path(__file__).resolve().parent / "estaticos"
+
+
+@lru_cache(maxsize=1)
+def obtener_auditoria() -> ServicioAuditoria:
+    """Panel de auditoria. Lee del mismo almacen que escribe el triaje.
+
+    Que lea del almacen y no de una lista en memoria es lo que hace que la
+    bandeja muestre el estado real: incluye los documentos que proceso otra
+    persona, en otra maquina, contra el mismo bucket.
+    """
+    from langchain_google_genai import ChatGoogleGenerativeAI
+
+    api_key = variable("GEMINI_API_KEY")
+
+    llm = (
+        ChatGoogleGenerativeAI(
+            model=variable("GEMINI_MODEL", MODELO_POR_DEFECTO),
+            google_api_key=api_key,
+            temperature=0,
+        )
+        if api_key
+        else None
+    )
+
+    return ServicioAuditoria(obtener_almacenamiento(), llm=llm)
+
+
+@app.get("/", include_in_schema=False)
+def inicio() -> FileResponse:
+    """La interfaz de triaje."""
+    return FileResponse(ESTATICOS / "index.html")
+
+
+@app.get("/bandeja", tags=["panel"])
+def bandeja(
+    prefijo: str = "auditoria_humana",
+    auditoria: ServicioAuditoria = Depends(obtener_auditoria),
+) -> list[dict]:
+    """Casos que esperan en un prefijo, ordenados por prioridad.
+
+    Urgente primero, despues Prioritario, despues Rutina. Es el unico lugar
+    donde "Prioritario" cambia algo observable: el orden de atencion.
+    """
+    return [
+        {
+            "documento_id": c.documento_id,
+            "tipo_documento": c.tipo_documento,
+            "nivel_prioridad": c.nivel_prioridad,
+            "destino": c.destino,
+            "justificacion": c.justificacion,
+            "paciente": c.paciente,
+        }
+        for c in auditoria.bandeja(prefijo)
+    ]
+
+
+@app.get("/documentos/{documento_id}", tags=["panel"])
+def documento(
+    documento_id: str,
+    auditoria: ServicioAuditoria = Depends(obtener_auditoria),
+) -> dict:
+    """La decision guardada junto al documento original.
+
+    Los dos juntos: es lo que necesita un auditor para decidir sin tener que
+    abrir el bucket por su cuenta.
+    """
+    encontrado = auditoria.documento(documento_id)
+
+    if encontrado is None:
+        raise HTTPException(
+            status_code=http_status.HTTP_404_NOT_FOUND,
+            detail=f"No hay ningun documento {documento_id} en el almacen.",
+        )
+
+    respuesta, prefijo = encontrado
+
+    return {
+        "prefijo": prefijo,
+        "original": auditoria.original(documento_id),
+        "decision": respuesta.model_dump(),
+    }
+
+
+@app.post("/documentos/{documento_id}/aprobar", tags=["panel"])
+def aprobar(
+    documento_id: str,
+    correcciones: Correcciones,
+    auditoria: ServicioAuditoria = Depends(obtener_auditoria),
+) -> RespuestaTriaje:
+    """El auditor corrige el contenido y el agente vuelve a decidir la ruta.
+
+    El auditor no elige el destino: corrige lo que el documento dice. Si
+    pudiera elegir la cola, el grafo de decision dejaria de ser la unica
+    autoridad sobre el enrutamiento y nadie podria auditar por que un
+    documento termino donde termino.
+    """
+    nueva = auditoria.aprobar(documento_id, correcciones)
+
+    if nueva is None:
+        raise HTTPException(
+            status_code=http_status.HTTP_404_NOT_FOUND,
+            detail=f"No hay ningun documento {documento_id} en el almacen.",
+        )
+
+    return nueva
+
+
 @app.get("/salud", tags=["operacion"])
 def salud() -> dict[str, str]:
     """Comprueba que el servicio esta arriba. No llama al modelo."""
@@ -202,3 +314,7 @@ async def triaje_archivo(
     )
 
     return servicio.procesar(solicitud, contenido=contenido)
+
+
+# Se monta al final para que no tape las rutas de la API.
+app.mount("/estaticos", StaticFiles(directory=ESTATICOS), name="estaticos")

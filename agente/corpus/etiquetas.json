@@ -4,163 +4,196 @@
     "tipo_documento": "receta_medica",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
+      "medicamentos",
       "medico.matricula",
-      "medicamentos"
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Receta estandar completa y legible."
+    "nota": "Receta estandar completa y legible.",
+    "campos_aceptables": []
   },
   {
     "archivo": "002-receta-hipertension.txt",
     "tipo_documento": "receta_medica",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
+      "medicamentos",
       "medico.matricula",
-      "medicamentos"
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Receta cronica con tres farmacos."
+    "nota": "Receta cronica con tres farmacos.",
+    "campos_aceptables": [
+      "estudio"
+    ]
   },
   {
     "archivo": "003-receta-sin-matricula.txt",
     "tipo_documento": "receta_medica",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
+      "medicamentos",
       "medico.nombre",
-      "medicamentos"
+      "paciente.nombre"
     ],
-    "nota": "Falta la matricula y la edad: el extractor debe devolver null, no inventar."
+    "nota": "Falta la matricula y la edad: el extractor debe devolver null, no inventar.",
+    "campos_aceptables": []
   },
   {
     "archivo": "004-receta-dosis-ilegible.txt",
     "tipo_documento": "receta_medica",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
+      "medicamentos",
       "medico.nombre",
-      "medicamentos"
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Dosis ilegible: debe derivar a revision humana, nunca a farmacia."
+    "nota": "Dosis ilegible: debe derivar a revision humana, nunca a farmacia.",
+    "campos_aceptables": []
   },
   {
     "archivo": "005-receta-pediatrica.txt",
     "tipo_documento": "receta_medica",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
+      "medicamentos",
       "medico.matricula",
-      "medicamentos"
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Paciente pediatrico, dosis por peso."
+    "nota": "Paciente pediatrico, dosis por peso.",
+    "campos_aceptables": []
   },
   {
     "archivo": "006-receta-opioide.txt",
     "tipo_documento": "receta_medica",
     "nivel_prioridad": "Prioritario",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
-      "medico.matricula",
+      "diagnostico",
       "medicamentos",
-      "diagnostico"
+      "medico.matricula",
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Prescripcion de alto riesgo: el enunciado la menciona como caso sensible."
+    "nota": "Prescripcion de alto riesgo: el enunciado la menciona como caso sensible.",
+    "campos_aceptables": [
+      "conclusion"
+    ]
   },
   {
     "archivo": "007-informe-tep.txt",
     "tipo_documento": "informe_estudio_diagnostico",
     "nivel_prioridad": "Urgente",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
-      "medico.matricula",
-      "estudio",
+      "conclusion",
       "diagnostico",
+      "estudio",
       "hallazgos",
-      "conclusion"
+      "medico.matricula",
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "El caso del enunciado. Hallazgo critico, debe ir a emergencia."
+    "nota": "El caso del enunciado. Hallazgo critico, debe ir a emergencia.",
+    "campos_aceptables": [
+      "procedimiento"
+    ]
   },
   {
     "archivo": "008-informe-laboratorio-normal.txt",
     "tipo_documento": "informe_estudio_diagnostico",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
+      "conclusion",
       "estudio",
-      "conclusion"
+      "hallazgos",
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Laboratorio de rutina sin hallazgos."
+    "nota": "Laboratorio de rutina sin hallazgos.",
+    "campos_aceptables": [
+      "diagnostico",
+      "procedimiento"
+    ]
   },
   {
     "archivo": "009-informe-infarto.txt",
     "tipo_documento": "informe_estudio_diagnostico",
     "nivel_prioridad": "Urgente",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
-      "medico.matricula",
-      "estudio",
+      "conclusion",
       "diagnostico",
+      "estudio",
       "hallazgos",
-      "conclusion"
+      "medico.matricula",
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Hallazgo critico cardiologico."
+    "nota": "Hallazgo critico cardiologico.",
+    "campos_aceptables": [
+      "procedimiento"
+    ]
   },
   {
     "archivo": "010-informe-rx-torax.txt",
     "tipo_documento": "informe_estudio_diagnostico",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
+      "conclusion",
       "estudio",
       "hallazgos",
-      "conclusion"
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Informe de imagenes sin datos del solicitante."
+    "nota": "Informe de imagenes sin datos del solicitante.",
+    "campos_aceptables": [
+      "diagnostico",
+      "procedimiento"
+    ]
   },
   {
     "archivo": "011-informe-ecografia.txt",
     "tipo_documento": "informe_estudio_diagnostico",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
+      "conclusion",
+      "diagnostico",
       "estudio",
       "hallazgos",
-      "conclusion"
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Hallazgo menor que no es urgencia."
+    "nota": "Hallazgo menor que no es urgencia.",
+    "campos_aceptables": [
+      "procedimiento"
+    ]
   },
   {
     "archivo": "012-informe-hemorragia.txt",
     "tipo_documento": "informe_estudio_diagnostico",
     "nivel_prioridad": "Urgente",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
-      "medico.matricula",
+      "conclusion",
+      "diagnostico",
       "estudio",
       "hallazgos",
-      "conclusion"
+      "medico.matricula",
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Hallazgo critico neurologico."
+    "nota": "Hallazgo critico neurologico.",
+    "campos_aceptables": [
+      "procedimiento"
+    ]
   },
   {
     "archivo": "013-informe-incompleto.txt",
@@ -170,48 +203,63 @@
       "estudio",
       "hallazgos"
     ],
-    "nota": "Informe sin identificacion del paciente: casi todo debe salir null."
+    "nota": "Informe sin identificacion del paciente: casi todo debe salir null.",
+    "campos_aceptables": [
+      "conclusion",
+      "procedimiento"
+    ]
   },
   {
     "archivo": "014-orden-laboratorio.txt",
     "tipo_documento": "orden_procedimiento",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
       "medico.matricula",
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre",
       "procedimiento"
     ],
-    "nota": "Escenario 1 de la demo: flujo estandar aprobado."
+    "nota": "Escenario 1 de la demo: flujo estandar aprobado.",
+    "campos_aceptables": [
+      "estudio"
+    ]
   },
   {
     "archivo": "015-orden-resonancia.txt",
     "tipo_documento": "orden_procedimiento",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
+      "diagnostico",
       "medico.matricula",
-      "procedimiento",
-      "diagnostico"
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre",
+      "procedimiento"
     ],
-    "nota": "Orden con hipotesis diagnostica, requiere autorizacion."
+    "nota": "Orden con hipotesis diagnostica, requiere autorizacion.",
+    "campos_aceptables": [
+      "conclusion",
+      "estudio"
+    ]
   },
   {
     "archivo": "016-orden-cirugia.txt",
     "tipo_documento": "orden_procedimiento",
     "nivel_prioridad": "Prioritario",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
+      "diagnostico",
       "medico.matricula",
-      "procedimiento",
-      "diagnostico"
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre",
+      "procedimiento"
     ],
-    "nota": "Procedimiento quirurgico programado."
+    "nota": "Procedimiento quirurgico programado.",
+    "campos_aceptables": [
+      "conclusion",
+      "estudio"
+    ]
   },
   {
     "archivo": "017-orden-sin-firma.txt",
@@ -221,152 +269,184 @@
       "paciente.nombre",
       "procedimiento"
     ],
-    "nota": "Orden sin firma ni matricula: debe escalar, no aprobarse sola."
+    "nota": "Orden sin firma ni matricula: debe escalar, no aprobarse sola.",
+    "campos_aceptables": [
+      "estudio"
+    ]
   },
   {
     "archivo": "018-orden-urgente-guardia.txt",
     "tipo_documento": "orden_procedimiento",
     "nivel_prioridad": "Urgente",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
+      "diagnostico",
+      "hallazgos",
       "medico.matricula",
-      "procedimiento",
-      "diagnostico"
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre",
+      "procedimiento"
     ],
-    "nota": "Orden emitida desde guardia con sospecha critica."
+    "nota": "Orden emitida desde guardia con sospecha critica.",
+    "campos_aceptables": [
+      "conclusion",
+      "estudio"
+    ]
   },
   {
     "archivo": "019-epicrisis-neumonia.txt",
     "tipo_documento": "epicrisis",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
-      "medico.matricula",
+      "conclusion",
       "diagnostico",
+      "hallazgos",
       "medicamentos",
-      "conclusion"
+      "medico.matricula",
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Epicrisis completa con evolucion favorable."
+    "nota": "Epicrisis completa con evolucion favorable.",
+    "campos_aceptables": []
   },
   {
     "archivo": "020-epicrisis-parto.txt",
     "tipo_documento": "epicrisis",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
-      "medico.matricula",
+      "conclusion",
       "diagnostico",
-      "conclusion"
+      "hallazgos",
+      "medico.matricula",
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Epicrisis obstetrica sin complicaciones."
+    "nota": "Epicrisis obstetrica sin complicaciones.",
+    "campos_aceptables": []
   },
   {
     "archivo": "021-epicrisis-sepsis.txt",
     "tipo_documento": "epicrisis",
     "nivel_prioridad": "Urgente",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
-      "medico.matricula",
+      "conclusion",
       "diagnostico",
-      "conclusion"
+      "hallazgos",
+      "medico.matricula",
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Epicrisis con reingreso por sepsis: el texto contiene un hallazgo critico."
+    "nota": "Epicrisis con reingreso por sepsis: el texto contiene un hallazgo critico.",
+    "campos_aceptables": []
   },
   {
     "archivo": "022-epicrisis-breve.txt",
     "tipo_documento": "epicrisis",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
+      "conclusion",
       "diagnostico",
-      "conclusion"
+      "paciente.nombre"
     ],
-    "nota": "Epicrisis muy escueta: falta la mayoria de los campos."
+    "nota": "Epicrisis muy escueta: falta la mayoria de los campos.",
+    "campos_aceptables": []
   },
   {
     "archivo": "023-certificado-reposo.txt",
     "tipo_documento": "certificado_medico",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
+      "diagnostico",
       "medico.matricula",
-      "diagnostico"
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Certificado laboral estandar."
+    "nota": "Certificado laboral estandar.",
+    "campos_aceptables": [
+      "conclusion"
+    ]
   },
   {
     "archivo": "024-certificado-aptitud.txt",
     "tipo_documento": "certificado_medico",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
+      "conclusion",
       "medico.matricula",
-      "conclusion"
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Certificado de aptitud fisica."
+    "nota": "Certificado de aptitud fisica.",
+    "campos_aceptables": [
+      "diagnostico",
+      "hallazgos"
+    ]
   },
   {
     "archivo": "025-certificado-sin-fecha.txt",
     "tipo_documento": "certificado_medico",
     "nivel_prioridad": "Rutina",
     "campos_presentes": [
-      "paciente.nombre",
+      "diagnostico",
       "medico.nombre",
-      "diagnostico"
+      "paciente.nombre"
     ],
-    "nota": "Certificado sin fecha ni matricula."
+    "nota": "Certificado sin fecha ni matricula.",
+    "campos_aceptables": [
+      "conclusion"
+    ]
   },
   {
     "archivo": "026-certificado-discapacidad.txt",
     "tipo_documento": "certificado_medico",
     "nivel_prioridad": "Prioritario",
     "campos_presentes": [
-      "paciente.nombre",
-      "paciente.edad",
-      "medico.nombre",
+      "diagnostico",
       "medico.matricula",
-      "diagnostico"
+      "medico.nombre",
+      "paciente.edad",
+      "paciente.nombre"
     ],
-    "nota": "Certificado con implicancia administrativa, requiere auditoria."
+    "nota": "Certificado con implicancia administrativa, requiere auditoria.",
+    "campos_aceptables": [
+      "conclusion"
+    ]
   },
   {
     "archivo": "027-desconocido-factura.txt",
     "tipo_documento": "desconocido",
     "nivel_prioridad": "Prioritario",
     "campos_presentes": [],
-    "nota": "Documento administrativo, no clinico: no debe forzarse a una categoria."
+    "nota": "Documento administrativo, no clinico: no debe forzarse a una categoria.",
+    "campos_aceptables": []
   },
   {
     "archivo": "028-desconocido-ilegible.txt",
     "tipo_documento": "desconocido",
     "nivel_prioridad": "Prioritario",
     "campos_presentes": [],
-    "nota": "Transcripcion casi totalmente ilegible."
+    "nota": "Transcripcion casi totalmente ilegible.",
+    "campos_aceptables": []
   },
   {
     "archivo": "029-desconocido-correo.txt",
     "tipo_documento": "desconocido",
     "nivel_prioridad": "Prioritario",
     "campos_presentes": [],
-    "nota": "Correo interno sin contenido clinico estructurado."
+    "nota": "Correo interno sin contenido clinico estructurado.",
+    "campos_aceptables": []
   },
   {
     "archivo": "030-desconocido-vacio.txt",
     "tipo_documento": "desconocido",
     "nivel_prioridad": "Prioritario",
     "campos_presentes": [],
-    "nota": "Pagina casi en blanco: un escaneo fallido."
+    "nota": "Pagina casi en blanco: un escaneo fallido.",
+    "campos_aceptables": []
   }
 ]

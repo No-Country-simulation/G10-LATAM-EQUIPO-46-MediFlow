@@ -83,11 +83,32 @@ class DatosReceta(_Base):
 class DatosInforme(_Base):
     estudio: Optional[str] = Field(default=None, description="Estudio realizado.")
     indicacion: Optional[str] = Field(default=None, description="Motivo del estudio.")
-    hallazgos: Optional[str] = Field(default=None, description="Hallazgos descritos.")
-    conclusion: Optional[str] = Field(default=None, description="Conclusion del informe.")
+    hallazgos: Optional[str] = Field(
+        default=None,
+        description=(
+            "Lo que el estudio observo. Incluye los VALORES DE LABORATORIO con "
+            "sus unidades aunque el documento no tenga un apartado llamado "
+            "'Hallazgos': un hemograma con sus cifras son hallazgos."
+        ),
+    )
+    conclusion: Optional[str] = Field(
+        default=None,
+        description=(
+            "La conclusion TAL COMO ESTA ESCRITA, incluida la expresion "
+            "completa. Si dice 'compatible con X' o 'sospecha de X', se "
+            "conserva asi, con el 'compatible con' adentro."
+        ),
+    )
 
     diagnostico: Optional[str] = Field(
-        default=None, description="Diagnostico explicito. Null si solo hay sospecha."
+        default=None,
+        description=(
+            "Solo diagnosticos AFIRMADOS. Si la conclusion afirma la condicion "
+            "('Hemorragia subaracnoidea aguda'), va aca ademas de quedar en "
+            "conclusion. Si solo la sugiere ('compatible con', 'sospecha de'), "
+            "este campo va en null y la expresion queda unicamente en "
+            "conclusion."
+        ),
     )
 
     cie10_sugerido: Optional[str] = Field(

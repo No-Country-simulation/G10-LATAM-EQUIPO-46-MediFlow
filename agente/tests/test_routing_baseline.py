@@ -20,13 +20,24 @@ def _clasificacion(tipo="informe_estudio_diagnostico", confianza=0.95):
 
 
 def _datos(**campos):
-    base = dict(patient=Patient(name="Carlos Mendes", age=52), doctor=Doctor())
+    """Datos COMPLETOS por defecto.
+
+    Desde las reglas por tipo de documento, un caso al que le faltan campos
+    minimos va a revision humana. Para probar el enrutamiento normal hay que
+    partir de un documento completo.
+    """
+    base = dict(
+        patient=Patient(name="Carlos Mendes", age=52),
+        doctor=Doctor(name="Dra. Renata Silveira", license_number="145892"),
+        medications=["Amoxicilina 500 mg cada 8 horas"],
+        procedure="Hemograma completo",
+    )
     base.update(campos)
     return ExtractedData(**base)
 
 
 def _decidir(clasificacion=None, datos=None, canal="Recepcion", umbral=0.70,
-             documento=None):
+             documento=None, especifico=None):
     return decidir_enrutamiento(
         documento_id="DOC-1",
         clasificacion=clasificacion or _clasificacion(),
@@ -34,6 +45,7 @@ def _decidir(clasificacion=None, datos=None, canal="Recepcion", umbral=0.70,
         canal_origen=canal,
         umbral_confianza=umbral,
         documento=documento,
+        especifico=especifico,
     )
 
 
@@ -258,3 +270,100 @@ def test_una_transcripcion_limpia_sigue_su_ruta_normal():
 
     assert decision.destino_principal == "Farmacia_Hospitalaria"
     assert status == "procesado"
+
+
+# --- Reglas por tipo de documento (revision de Danilo, 12/10/2026) --------
+
+def test_una_receta_sin_matricula_no_va_sola_a_farmacia():
+    # Sin matricula nadie puede verificar que la firmo un profesional
+    # habilitado. El dato ausente queda en null, no se completa.
+    _, decision, status = _decidir(
+        clasificacion=_clasificacion(tipo="receta_medica", confianza=0.95),
+        datos=_datos(doctor=Doctor(name="Dr. Fabian Riquelme")),
+    )
+
+    assert decision.destino_principal == "Cola_Revision_Humana"
+    assert decision.requiere_auditoria_humana is True
+    assert "matricula" in decision.justificacion_enrutamiento
+    assert status == "derivado_revision_humana"
+
+
+def test_una_orden_sin_firma_no_se_autoriza_sola():
+    _, decision, _ = _decidir(
+        clasificacion=_clasificacion(tipo="orden_procedimiento", confianza=0.95),
+        datos=_datos(doctor=Doctor()),
+    )
+
+    assert decision.destino_principal == "Cola_Revision_Humana"
+
+
+def test_la_justificacion_dice_que_falta_y_por_que():
+    # El auditor tiene que saber que completar sin abrir el documento.
+    _, decision, _ = _decidir(
+        clasificacion=_clasificacion(tipo="receta_medica"),
+        datos=_datos(medications=None),
+    )
+
+    assert "medicamentos" in decision.justificacion_enrutamiento
+    assert "dispensar" in decision.justificacion_enrutamiento
+
+
+def test_una_receta_controlada_va_a_revision_pero_NO_a_emergencia():
+    # Que sea controlada la vuelve no automatizable, no urgente.
+    class Especifico:
+        es_receta_controlada = True
+
+    prioridad, decision, _ = _decidir(
+        clasificacion=_clasificacion(tipo="receta_medica", confianza=0.98),
+        especifico=Especifico(),
+    )
+
+    assert decision.destino_principal == "Cola_Revision_Humana"
+    assert prioridad != "Urgente", "ser controlada no es una emergencia"
+    assert "firma" in decision.justificacion_enrutamiento
+
+
+def test_un_certificado_de_junta_medica_escala():
+    from mediflow_agent.ingestion.base import DocumentoNormalizado
+
+    _, decision, _ = _decidir(
+        clasificacion=_clasificacion(tipo="certificado_medico", confianza=0.96),
+        documento=DocumentoNormalizado(
+            texto="CERTIFICADO MEDICO PARA JUNTA EVALUADORA. Paciente: Myriam Caceres.",
+            origen="texto_plano",
+        ),
+    )
+
+    assert decision.destino_principal == "Cola_Revision_Humana"
+    assert "junta" in decision.justificacion_enrutamiento.lower()
+
+
+def test_un_certificado_comun_sigue_su_ruta():
+    from mediflow_agent.ingestion.base import DocumentoNormalizado
+
+    _, decision, status = _decidir(
+        clasificacion=_clasificacion(tipo="certificado_medico", confianza=0.96),
+        documento=DocumentoNormalizado(
+            texto="Certifico reposo laboral por tres dias.", origen="texto_plano"
+        ),
+    )
+
+    assert decision.destino_principal == "Historia_Clinica_Electronica"
+    assert status == "procesado"
+
+
+def test_la_urgencia_gana_sobre_los_datos_faltantes():
+    # Un informe con un hallazgo critico va a emergencia aunque le falte la
+    # matricula. Primero se salva al paciente, despues se completan los datos.
+    from mediflow_agent.ingestion.base import DocumentoNormalizado
+
+    prioridad, decision, _ = _decidir(
+        clasificacion=_clasificacion(tipo="receta_medica"),
+        datos=_datos(doctor=Doctor(), medications=None),
+        documento=DocumentoNormalizado(
+            texto="Paciente con sepsis grave.", origen="texto_plano"
+        ),
+    )
+
+    assert prioridad == "Urgente"
+    assert decision.destino_principal == "Cola_Emergencia_Medica"

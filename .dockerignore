@@ -1,0 +1,32 @@
+# Lo que NO debe entrar a la imagen.
+#
+# La primera entrada es la que importa: un .env dentro de una imagen de
+# contenedor es una credencial que viaja a donde viaje la imagen, y las
+# imagenes se comparten sin pensarlo. Las variables se inyectan al levantar,
+# no se hornean.
+**/.env
+**/*.env
+!**/.env.example
+**/*.pem
+
+# Entornos y cache: pesan cientos de megas y se reconstruyen dentro.
+**/.venv/
+**/venv/
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+
+# Historia y herramientas: no aportan nada en tiempo de ejecucion.
+.git/
+.github/
+**/.idea/
+**/.vscode/
+
+# El almacen local: son documentos procesados, no codigo.
+**/.almacen/
+
+# Documentacion y pruebas: la imagen sirve la aplicacion, no la desarrolla.
+docs/
+**/tests/
+**/*.md
+!infrastructure/README.md

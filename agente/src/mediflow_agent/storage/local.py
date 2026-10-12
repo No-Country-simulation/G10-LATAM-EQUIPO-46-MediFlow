@@ -135,3 +135,30 @@ class AlmacenamientoLocal(AlmacenamientoDocumentos):
         destino = self._resolver_existente(prefijo, nombre_objeto)
 
         return destino.read_bytes() if destino else None
+
+    def borrar(self, prefijo: str, nombre_objeto: str) -> bool:
+        destino = self._resolver_existente(prefijo, nombre_objeto)
+
+        if destino is None:
+            return False
+
+        try:
+            destino.unlink()
+            return True
+        except OSError as err:
+            _log.warning("No se pudo borrar %s/%s: %s", prefijo, nombre_objeto, err)
+            return False
+
+    def listar(self, prefijo: str) -> tuple[str, ...]:
+        carpeta = self._raiz / prefijo
+
+        if not carpeta.is_dir():
+            return ()
+
+        try:
+            return tuple(
+                sorted(p.name for p in carpeta.iterdir() if p.is_file())
+            )
+        except OSError as err:
+            _log.warning("No se pudo listar %s: %s", prefijo, err)
+            return ()

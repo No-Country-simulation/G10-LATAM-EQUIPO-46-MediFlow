@@ -176,6 +176,7 @@ def evaluar(simulado: bool) -> int:
     enrutar = _cargar_enrutamiento()
 
     aciertos = 0
+    confianzas: list[tuple[str, float, bool]] = []
     confusiones: Counter = Counter()
     cobertura_ok: Counter = defaultdict(int)
     cobertura_total: Counter = defaultdict(int)
@@ -203,8 +204,20 @@ def evaluar(simulado: bool) -> int:
         else:
             confusiones[(esperado, obtenido)] += 1
 
+        # Para el barrido de umbral: hace falta saber, documento por
+        # documento, con cuanta confianza clasifico y si acerto.
+        confianzas.append(
+            (etiqueta["archivo"], clasificacion.confidence, obtenido == esperado)
+        )
+
         # --- cobertura e invenciones ---
+        #
+        # Tres categorias, no dos. Los "aceptables" son campos donde el dato
+        # del documento puede caer legitimamente: "Tomografia de Torax" es el
+        # estudio de un informe y el procedimiento de una orden. Llenarlos no
+        # es cobertura ni invencion.
         esperados = set(etiqueta["campos_presentes"])
+        tolerados = set(etiqueta.get("campos_aceptables", ()))
 
         for campo, extraer in CAMPOS.items():
             valor = extraer(datos)
@@ -213,6 +226,8 @@ def evaluar(simulado: bool) -> int:
                 cobertura_total[campo] += 1
                 if _tiene_valor(valor):
                     cobertura_ok[campo] += 1
+            elif campo in tolerados:
+                continue
             elif _tiene_valor(valor):
                 inventados.append((etiqueta["archivo"], campo, valor))
 
@@ -304,7 +319,59 @@ def evaluar(simulado: bool) -> int:
         print(f"  Ninguno. Los {urgentes} documentos urgentes fueron a la cola")
         print("  de emergencia.")
 
+    # ---------------- barrido de umbral (tarea 4.2) ----------------
     print()
+    print("=" * 62)
+    print("5. CALIBRACION DEL UMBRAL DE CONFIANZA")
+    print("=" * 62)
+    print("  Por debajo del umbral, el caso va a revision humana.")
+    print("  Subirlo atrapa mas errores pero manda mas casos buenos a un")
+    print("  humano. Bajarlo deja pasar errores. Estos son los numeros.\n")
+
+    from mediflow_agent.routing.baseline import UMBRAL_CONFIANZA
+
+    correctos = [c for _, c, ok in confianzas if ok]
+    errados = [c for _, c, ok in confianzas if not ok]
+
+    print(f"  {len(correctos)} clasificaciones correctas, {len(errados)} erradas\n")
+
+    if correctos:
+        print(
+            f"    confianza de las correctas: minima {min(correctos):.2f}, "
+            f"mediana {sorted(correctos)[len(correctos) // 2]:.2f}, "
+            f"maxima {max(correctos):.2f}"
+        )
+    if errados:
+        print(
+            f"    confianza de las erradas  : "
+            + ", ".join(f"{c:.2f}" for c in sorted(errados))
+        )
+
+    print()
+    print(f"    {'umbral':>7}  {'errores atrapados':>18}  {'buenos a revision':>18}")
+
+    for umbral in (0.50, 0.60, 0.70, 0.80, 0.90, 0.95):
+        atrapados = sum(1 for c in errados if c < umbral)
+        molestados = sum(1 for c in correctos if c < umbral)
+        marca = "  <-- el configurado" if abs(umbral - UMBRAL_CONFIANZA) < 0.001 else ""
+        print(
+            f"    {umbral:7.2f}  {atrapados:>8} de {len(errados):<7}"
+            f"  {molestados:>8} de {len(correctos):<7}{marca}"
+        )
+
+    print()
+
+    if errados and all(c >= 0.95 for c in errados):
+        print("  El umbral NO sirve para atrapar estos errores: el modelo se")
+        print("  equivoca con mucha confianza. Subirlo solo mandaria casos")
+        print("  correctos a revision sin ganar nada.")
+    elif not errados:
+        print("  Sin errores de clasificacion: no hay nada que calibrar con")
+        print("  este corpus. Hace falta uno mas dificil para que el numero")
+        print("  signifique algo.")
+
+    print()
+
     return 1 if urgencias_perdidas else 0
 
 

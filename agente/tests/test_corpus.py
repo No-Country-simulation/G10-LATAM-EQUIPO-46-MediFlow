@@ -116,3 +116,34 @@ def test_los_desconocidos_no_declaran_campos_clinicos(etiquetas):
     for e in etiquetas:
         if e["tipo_documento"] == "desconocido":
             assert e["campos_presentes"] == [], f"{e['archivo']} declara campos"
+
+
+def test_cada_etiqueta_declara_sus_campos_aceptables(etiquetas):
+    # Tres categorias, no dos: presentes (el agente DEBE extraerlos),
+    # aceptables (puede, sin que sea acierto ni fallo) y el resto, que es
+    # invencion. Sin la del medio, un dato real puesto en un campo que se
+    # solapa contaba como alucinacion.
+    for e in etiquetas:
+        assert "campos_aceptables" in e, f"{e['archivo']} sin campos_aceptables"
+
+
+def test_un_campo_no_puede_ser_presente_y_aceptable_a_la_vez(etiquetas):
+    for e in etiquetas:
+        cruce = set(e["campos_presentes"]) & set(e["campos_aceptables"])
+        assert not cruce, f"{e['archivo']}: {cruce} en las dos listas"
+
+
+def test_los_campos_aceptables_tambien_existen(etiquetas):
+    for e in etiquetas:
+        desconocidos = set(e["campos_aceptables"]) - CAMPOS_VALIDOS
+        assert not desconocidos, f"{e['archivo']}: {desconocidos}"
+
+
+def test_los_solapamientos_reales_estan_contemplados(etiquetas):
+    # estudio/procedimiento y conclusion/diagnostico se solapan de verdad.
+    # Si ningun documento los declara aceptables, la medicion volvio a tener
+    # dos categorias y los falsos positivos van a reaparecer.
+    todos = {c for e in etiquetas for c in e["campos_aceptables"]}
+
+    assert "procedimiento" in todos or "estudio" in todos
+    assert "diagnostico" in todos or "conclusion" in todos

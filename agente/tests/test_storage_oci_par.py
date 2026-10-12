@@ -11,6 +11,7 @@ logs de la aplicacion.
 import pytest
 
 from mediflow_agent.storage.base import (
+    PREFIJO_URGENTES,
     PREFIJO_AUDITORIA,
     PREFIJO_RECIBIDOS,
     PREFIJO_RUTINA,
@@ -204,7 +205,22 @@ def test_un_par_vencido_se_reporta_como_fallo_de_respaldo():
     assert "404" in resultado.detalle_error
 
 
-def test_listar_devuelve_los_objetos(almacen):
+def test_listar_un_prefijo_devuelve_los_nombres_sin_el_prefijo(almacen):
+    # El panel de auditoria pide "que hay en auditoria_humana", no la ruta
+    # completa: la bandeja muestra identificadores de documento.
+    almacen.guardar_texto(PREFIJO_RUTINA, "DOC-1.json", "{}")
+    almacen.guardar_texto(PREFIJO_AUDITORIA, "DOC-2.json", "{}")
+
+    assert almacen.listar(PREFIJO_RUTINA) == ("DOC-1.json",)
+    assert almacen.listar(PREFIJO_AUDITORIA) == ("DOC-2.json",)
+
+
+def test_listar_un_prefijo_vacio_no_falla(almacen):
+    # Un panel vacio es preferible a un panel que explota.
+    assert almacen.listar(PREFIJO_URGENTES) == ()
+
+
+def test_listar_sin_prefijo_devuelve_todo_el_bucket(almacen):
     almacen.guardar_texto(PREFIJO_RUTINA, "DOC-1.json", "{}")
 
-    assert almacen.listar() == ["procesados/rutina/DOC-1.json"]
+    assert almacen.listar() == ("procesados/rutina/DOC-1.json",)

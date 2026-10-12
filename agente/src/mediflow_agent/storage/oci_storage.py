@@ -238,6 +238,45 @@ class AlmacenamientoOci(AlmacenamientoDocumentos):
     def leer_binario(self, prefijo: str, nombre_objeto: str) -> bytes | None:
         return self._leer(prefijo, nombre_objeto)
 
+    def borrar(self, prefijo: str, nombre_objeto: str) -> bool:
+        if not _nombre_valido(nombre_objeto):
+            return False
+
+        try:
+            self._cliente.delete_object(
+                namespace_name=self._namespace,
+                bucket_name=self._bucket,
+                object_name=f"{prefijo}/{nombre_objeto}",
+            )
+            return True
+
+        except Exception as err:  # noqa: BLE001
+            _log.warning("No se pudo borrar %s/%s: %s", prefijo, nombre_objeto, err)
+            return False
+
+    def listar(self, prefijo: str) -> tuple[str, ...]:
+        inicio = prefijo.rstrip("/") + "/"
+
+        try:
+            respuesta = self._cliente.list_objects(
+                namespace_name=self._namespace,
+                bucket_name=self._bucket,
+                prefix=inicio,
+            )
+            nombres = [o.name for o in respuesta.data.objects]
+
+        except Exception as err:  # noqa: BLE001
+            _log.warning("No se pudo listar %s: %s", prefijo, err)
+            return ()
+
+        return tuple(
+            sorted(
+                n[len(inicio):]
+                for n in nombres
+                if n.startswith(inicio) and "/" not in n[len(inicio):]
+            )
+        )
+
 
 def _nombre_valido(nombre_objeto: str) -> bool:
     return bool(

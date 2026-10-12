@@ -45,6 +45,11 @@ Lo que mas importa son los medicamentos con su dosis y su frecuencia. La dosis
 es el dato mas peligroso de leer mal: si no esta clara, va en null. Mas vale
 que un farmaceutico la consulte a que se dispense una dosis equivocada.
 
+Un medicamento necesita un NOMBRE. Si en el documento solo queda una dosis
+suelta ("40 mg") sin saber de que farmaco es, NO lo registres: una dosis sin
+nombre no se puede dispensar, y nombrarla como medicamento es peor que dejar
+la lista vacia.
+
 Marca es_receta_controlada solo si el documento lo dice, o si prescribe un
 opioide o un psicotropico.""",
 
@@ -54,8 +59,13 @@ Distingue tres cosas que suelen confundirse: la indicacion es por que se pidio
 el estudio, los hallazgos son lo que se observo, y la conclusion es lo que el
 profesional concluye. No las mezcles.
 
-El diagnostico va solo si el informe afirma un diagnostico. Si dice "compatible
-con" o "sospecha de", eso es la conclusion, no un diagnostico confirmado.
+El diagnostico va solo si el informe lo AFIRMA. Si dice "compatible con" o
+"sospecha de", eso queda unicamente en conclusion, con la expresion completa,
+y diagnostico va en null. Si la conclusion afirma la condicion, va en los dos
+campos: el diagnostico afirmado y la conclusion textual.
+
+Los valores de laboratorio van en hallazgos, con sus unidades, aunque el
+documento no tenga un apartado llamado "Hallazgos".
 
 El codigo CIE-10 es distinto: es una SUGERENCIA para clasificar el caso, no un
 diagnostico. Si la conclusion nombra una condicion, sugeri su codigo aunque
@@ -76,8 +86,12 @@ que interesa es la indicada AL ALTA, no la que recibio durante la internacion.""
 
     "certificado_medico": """Estas leyendo un CERTIFICADO MEDICO.
 
-Registra que se certifica (reposo, aptitud, una constancia) y el motivo clinico
-si figura. Muchos certificados no consignan diagnostico: en ese caso va null.""",
+Registra que se certifica (reposo, aptitud, una constancia) en conclusion, y el
+motivo clinico en diagnostico si figura. Muchos certificados no consignan
+diagnostico: en ese caso va null.
+
+El titulo del documento NO es un procedimiento ni un estudio. Un certificado
+no tiene procedimiento: ese campo queda vacio.""",
 }
 
 
