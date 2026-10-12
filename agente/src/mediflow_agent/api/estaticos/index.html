@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MediFlow · Consola de triaje</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/estaticos/estilo.css">
+</head>
+<body>
+
+<header class="barra">
+  <div class="marca">
+    <span class="pulso" aria-hidden="true"></span>
+    <strong>MediFlow</strong>
+    <span class="sub">Consola de triaje clínico</span>
+  </div>
+
+  <div class="estado">
+    <span class="punto" id="punto-estado"></span>
+    <span id="texto-estado">conectando…</span>
+  </div>
+</header>
+
+<main class="tablero">
+
+  <section class="conversacion" aria-label="Conversación de triaje">
+
+    <div class="hilo" id="hilo">
+      <div class="bienvenida" id="bienvenida">
+        <h1>Pegá un documento clínico y el agente lo tría.</h1>
+        <p>
+          Lo clasifica, extrae los datos, evalúa la urgencia por dos vías y lo
+          deriva al destino que corresponde. Cada decisión viene con su
+          justificación escrita.
+        </p>
+        <div class="ejemplos">
+          <button type="button" data-ejemplo="urgencia">
+            <span class="chip chip-urgente">Urgencia</span>
+            Informe de tromboembolismo pulmonar
+          </button>
+          <button type="button" data-ejemplo="rutina">
+            <span class="chip chip-rutina">Rutina</span>
+            Orden de estudios de laboratorio
+          </button>
+          <button type="button" data-ejemplo="ambiguo">
+            <span class="chip chip-revision">Ambigüedad</span>
+            Receta con la dosis ilegible
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <form class="redactor" id="redactor" autocomplete="off">
+      <div class="controles">
+        <label class="campo">
+          <span>Identificador</span>
+          <input type="text" id="documento-id" placeholder="se genera solo">
+        </label>
+
+        <label class="campo">
+          <span>Canal de origen</span>
+          <select id="canal">
+            <option value="Guardia_Emergencias">Guardia de emergencias</option>
+            <option value="Recepcion" selected>Recepción</option>
+            <option value="Consultorio_Externo">Consultorio externo</option>
+            <option value="Mesa_de_Entradas">Mesa de entradas</option>
+          </select>
+        </label>
+
+        <label class="campo archivo">
+          <span>Subir PDF o imagen</span>
+          <input type="file" id="archivo" accept=".pdf,.png,.jpg,.jpeg,.webp">
+        </label>
+      </div>
+
+      <div class="envio">
+        <textarea id="texto" rows="3" placeholder="Pegá acá el documento clínico…"></textarea>
+        <button type="submit" id="enviar">
+          <span class="etiqueta">Triar</span>
+        </button>
+      </div>
+    </form>
+
+  </section>
+
+  <aside class="bandeja" aria-label="Bandejas de triaje">
+
+    <nav class="pestanas" id="pestanas">
+      <button type="button" class="activa" data-prefijo="auditoria_humana">
+        Revisión <span class="cuenta" data-cuenta="auditoria_humana">0</span>
+      </button>
+      <button type="button" data-prefijo="procesados/urgentes">
+        Urgentes <span class="cuenta" data-cuenta="procesados/urgentes">0</span>
+      </button>
+      <button type="button" data-prefijo="procesados/rutina">
+        Rutina <span class="cuenta" data-cuenta="procesados/rutina">0</span>
+      </button>
+    </nav>
+
+    <div class="lista" id="lista">
+      <p class="vacio">Cargando…</p>
+    </div>
+
+    <footer class="pie-bandeja">
+      <span id="origen-almacen">—</span>
+      <button type="button" id="refrescar">Actualizar</button>
+    </footer>
+
+  </aside>
+
+</main>
+
+<div class="velo" id="velo" hidden>
+  <section class="auditoria" role="dialog" aria-modal="true" aria-labelledby="titulo-auditoria">
+
+    <header>
+      <div>
+        <h2 id="titulo-auditoria">Auditoría humana</h2>
+        <p class="id-doc" id="auditoria-id">—</p>
+      </div>
+      <button type="button" id="cerrar-auditoria" aria-label="Cerrar">&times;</button>
+    </header>
+
+    <div class="cuerpo">
+      <div class="columna">
+        <h3>Documento original</h3>
+        <pre class="original" id="auditoria-original">—</pre>
+
+        <h3>Por qué está acá</h3>
+        <p class="motivo" id="auditoria-motivo">—</p>
+      </div>
+
+      <div class="columna">
+        <h3>Datos extraídos</h3>
+        <p class="ayuda">
+          Completá lo que falte. Al aprobar, <strong>el agente vuelve a
+          decidir</strong> la ruta con los datos corregidos: vos corregís el
+          contenido, no elegís el destino.
+        </p>
+
+        <form id="form-auditoria">
+          <label><span>Paciente</span><input type="text" id="c-paciente"></label>
+          <label><span>Edad</span><input type="number" id="c-edad" min="0" max="130"></label>
+          <label><span>Médico</span><input type="text" id="c-medico"></label>
+          <label><span>Matrícula</span><input type="text" id="c-matricula"></label>
+          <label><span>Estudio</span><input type="text" id="c-estudio"></label>
+          <label><span>Diagnóstico</span><input type="text" id="c-diagnostico"></label>
+          <label><span>CIE-10</span><input type="text" id="c-cie10" placeholder="I26.9"></label>
+          <label class="ancho"><span>Medicamentos</span><input type="text" id="c-medicamentos" placeholder="separados con punto y coma"></label>
+          <label class="ancho"><span>Auditor</span><input type="text" id="c-auditor" placeholder="Tu nombre"></label>
+        </form>
+      </div>
+    </div>
+
+    <footer>
+      <span class="aviso" id="auditoria-aviso"></span>
+      <div class="acciones">
+        <button type="button" class="secundario" id="cancelar-auditoria">Cancelar</button>
+        <button type="button" class="principal" id="aprobar">Aprobar y re-enrutar</button>
+      </div>
+    </footer>
+
+  </section>
+</div>
+
+<script src="/estaticos/app.js"></script>
+</body>
+</html>

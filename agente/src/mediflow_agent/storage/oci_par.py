@@ -205,11 +205,28 @@ class AlmacenamientoOciPar(AlmacenamientoDocumentos):
 
     # -- diagnostico -----------------------------------------------------
 
-    def listar(self) -> list[str] | None:
-        """Nombres de los objetos del bucket, o None si el PAR no lo permite.
+    def listar(self, prefijo: str = "") -> tuple[str, ...]:
+        """Nombres de objeto bajo un prefijo, sin el prefijo delante."""
+        todos = self._listar_todo()
 
-        Solo para el script de verificacion: el sistema no lo usa.
-        """
+        if todos is None:
+            return ()
+
+        if not prefijo:
+            return tuple(sorted(todos))
+
+        inicio = prefijo.rstrip("/") + "/"
+
+        return tuple(
+            sorted(
+                n[len(inicio):]
+                for n in todos
+                if n.startswith(inicio) and "/" not in n[len(inicio):]
+            )
+        )
+
+    def _listar_todo(self) -> list[str] | None:
+        """Todos los nombres del bucket, o None si el PAR no lo permite."""
         try:
             respuesta = self._sesion.get(self._base, timeout=TIEMPO_LIMITE)
 

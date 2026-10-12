@@ -207,6 +207,49 @@ Las pruebas **no llaman a Gemini**: el modelo se sustituye por dobles. Corren
 en menos de un segundo y no consumen cuota, que es la contramedida al riesgo
 de quedarse sin llamadas gratuitas a mitad de la semana.
 
+## La consola de triaje
+
+```bash
+uvicorn mediflow_agent.api.app:app --app-dir src
+```
+
+Y abrir `http://127.0.0.1:8000`. La interfaz se sirve desde la misma
+aplicacion: un solo comando y un solo proceso, sin nada mas que levantar.
+
+**Dos regiones.** A la izquierda, la conversacion: se pega un documento y el
+agente responde con su decision — tipo, prioridad, destino, la justificacion
+escrita y los datos extraidos, con los campos vacios marcados como tales. A la
+derecha, las bandejas por estado, leidas **del almacen**, no de la memoria: lo
+que se ve es lo que hay en el bucket, incluso lo que proceso otra persona.
+
+**El color es informacion.** Cada estado del grafo tiene el suyo y siempre el
+mismo: urgente en coral, revision humana en ambar, rutina en verde. El acento
+del producto es teal y no se usa para ningun estado, para que nunca se confunda
+una marca de interfaz con una senal clinica.
+
+**El panel de auditoria** cierra el escenario 3 del enunciado. Al abrir un caso
+pendiente se ve el documento original junto a lo extraido, con los campos
+faltantes resaltados. El auditor los completa y aprueba, y **el agente vuelve a
+decidir** la ruta con los datos corregidos.
+
+Que re-decida el agente y no elija el auditor no es un detalle: si el auditor
+pudiera mandar un documento a cualquier cola, el grafo dejaria de ser la unica
+autoridad sobre el enrutamiento y nadie podria auditar por que un documento
+termino donde termino. El auditor decide **que dice** el documento; el agente
+decide **a donde va**.
+
+| Endpoint | Para que |
+|----------|----------|
+| `GET /` | La consola |
+| `GET /bandeja?prefijo=...` | Casos de un prefijo, urgentes primero |
+| `GET /documentos/{id}` | La decision guardada y el documento original |
+| `POST /documentos/{id}/aprobar` | Correcciones del auditor y re-enrutamiento |
+
+> **Nota sobre el PAR.** OCI no concede DELETE a traves de un
+> Pre-Authenticated Request. Al aprobar, si el almacen no permite borrar el
+> objeto de su prefijo anterior, se lo sobreescribe con la decision nueva para
+> que las dos copias digan lo mismo. Con credenciales IAM se borra de verdad.
+
 ## Tiempo de respuesta
 
 El requisito es resolver un documento en **10 segundos o menos**. No es una

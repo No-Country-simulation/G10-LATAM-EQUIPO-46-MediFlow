@@ -95,3 +95,26 @@ class AlmacenamientoDocumentos(ABC):
     @abstractmethod
     def leer_binario(self, prefijo: str, nombre_objeto: str) -> bytes | None:
         """Devuelve el contenido binario guardado, o None si no existe."""
+
+    def borrar(self, prefijo: str, nombre_objeto: str) -> bool:
+        """Elimina un objeto. Devuelve False si el almacen no lo permite.
+
+        No es abstracto a proposito: OCI **no concede DELETE a traves de un
+        Pre-Authenticated Request**, asi que esa implementacion no puede
+        cumplirlo. En lugar de obligarla a mentir, el valor por defecto es
+        "no pude", y quien llama decide que hacer con esa respuesta.
+        """
+        return False
+
+    @abstractmethod
+    def listar(self, prefijo: str) -> tuple[str, ...]:
+        """Nombres de objeto bajo un prefijo, sin el prefijo delante.
+
+        Lo necesita el panel de auditoria: la bandeja de casos pendientes es,
+        literalmente, el contenido de `auditoria_humana/`. Leer del almacen y
+        no de una lista en memoria hace que el panel muestre el estado real,
+        incluso el de los documentos que proceso otra persona.
+
+        Devuelve una tupla vacia si el prefijo no tiene nada o si el almacen
+        no responde: un panel vacio es preferible a un panel que explota.
+        """

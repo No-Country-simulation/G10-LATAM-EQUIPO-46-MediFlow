@@ -54,8 +54,13 @@ Distingue tres cosas que suelen confundirse: la indicacion es por que se pidio
 el estudio, los hallazgos son lo que se observo, y la conclusion es lo que el
 profesional concluye. No las mezcles.
 
-El diagnostico va solo si el informe afirma un diagnostico. Si dice "compatible
-con" o "sospecha de", eso es la conclusion, no un diagnostico confirmado.
+El diagnostico va solo si el informe lo AFIRMA. Si dice "compatible con" o
+"sospecha de", eso queda unicamente en conclusion, con la expresion completa,
+y diagnostico va en null. Si la conclusion afirma la condicion, va en los dos
+campos: el diagnostico afirmado y la conclusion textual.
+
+Los valores de laboratorio van en hallazgos, con sus unidades, aunque el
+documento no tenga un apartado llamado "Hallazgos".
 
 El codigo CIE-10 es distinto: es una SUGERENCIA para clasificar el caso, no un
 diagnostico. Si la conclusion nombra una condicion, sugeri su codigo aunque
