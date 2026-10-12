@@ -37,6 +37,7 @@ sys.path.insert(0, str(RAIZ / "src"))
 from dotenv import load_dotenv  # noqa: E402
 
 from mediflow_agent.config import numero  # noqa: E402
+from mediflow_agent.ingestion.base import DocumentoNormalizado  # noqa: E402
 from mediflow_agent.limites import PEDIDOS_POR_MINUTO, LimitadorDeRitmo  # noqa: E402
 from mediflow_agent.schemas.models import (  # noqa: E402
     ClassificationResult,
@@ -236,11 +237,20 @@ def evaluar(simulado: bool) -> int:
             urgentes += 1
 
             if enrutar is not None:
+                # Se le pasa el documento ORIGINAL, igual que hace la API. Sin
+                # esto el grafo reconstruye un texto a partir de los campos
+                # extraidos y la metrica deja de medir el sistema desplegado:
+                # una orden que dice "URGENTE. Paciente en shock" aparecia
+                # como falso negativo solo porque la extraccion, al volverse
+                # mas estricta, no recogio esas palabras en ningun campo.
                 prioridad, decision, _ = enrutar(
                     documento_id=etiqueta["archivo"],
                     clasificacion=clasificacion,
                     datos=datos,
                     canal_origen="Recepcion",
+                    documento=DocumentoNormalizado(
+                        texto=texto, origen="texto_plano"
+                    ),
                 )
                 if decision.destino_principal != "Cola_Emergencia_Medica":
                     urgencias_perdidas.append(etiqueta["archivo"])

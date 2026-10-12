@@ -101,6 +101,7 @@ def decidir_enrutamiento(
     documento: DocumentoNormalizado | None = None,
     llm: object | None = None,
     especifico: object | None = None,
+    revisado_por_humano: bool = False,
 ) -> tuple[NivelPrioridad, DecisionEnrutamientoContrato, StatusTriaje]:
     """Decide prioridad, destino y estado del triaje.
 
@@ -152,7 +153,17 @@ def decidir_enrutamiento(
     # Va despues de la urgencia (un hallazgo critico legible se atiende aunque
     # el resto del documento este borroso) y antes de la ruta por tipo: una
     # receta con la dosis ilegible NO puede ir a farmacia sola.
-    if documento is not None and MARCA_ILEGIBLE in documento.texto:
+    #
+    # No se aplica a un caso que ya paso por el panel. La regla existe para
+    # que un humano mire el documento; el original conserva sus marcas de
+    # [ilegible] para siempre, asi que volver a aplicarla despues de que lo
+    # miro deja el caso girando en revision sin salida posible. Lo que falte
+    # de verdad lo sigue atajando el paso 6, que mira los campos.
+    if (
+        not revisado_por_humano
+        and documento is not None
+        and MARCA_ILEGIBLE in documento.texto
+    ):
         return (
             "Prioritario" if canal_prioritario else "Rutina",
             DecisionEnrutamientoContrato(

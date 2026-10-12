@@ -25,7 +25,7 @@ from mediflow_agent.extraction.esquemas_por_tipo import (
     a_datos_comunes,
 )
 from mediflow_agent.config import variable
-from mediflow_agent.extraction.extractor import prompt_generico
+from mediflow_agent.extraction.extractor import REGLAS, prompt_generico
 from mediflow_agent.modelos import MODELO_POR_DEFECTO
 from mediflow_agent.schemas.models import ExtractedData
 from mediflow_agent.validacion.cie10 import depurar
@@ -51,16 +51,9 @@ def _sin_contenido_clinico(datos: ExtractedData) -> bool:
         )
     )
 
-# Reglas comunes a todos los prompts. Se repiten en cada llamada a proposito:
-# son las que impiden que el modelo rellene huecos por su cuenta.
-REGLAS = """Reglas que no se negocian:
-
-1. Extrae SOLO lo que aparece explicitamente escrito en el documento.
-2. Si un dato no esta, o esta ilegible, usa null. Nunca lo deduzcas ni lo
-   completes con lo que seria razonable.
-3. No conviertas una sospecha en un diagnostico. "Sospecha de X" no es "X".
-4. Conserva los nombres, numeros y unidades tal como figuran.
-5. Si el documento dice [ilegible] en un dato, ese campo va en null."""
+# Las reglas son las mismas para los dos caminos de extraccion y viven en
+# `extractor`. Se repiten en cada llamada a proposito: son las que impiden que
+# el modelo rellene huecos por su cuenta.
 
 INSTRUCCIONES = {
     "receta_medica": """Estas leyendo una RECETA MEDICA.

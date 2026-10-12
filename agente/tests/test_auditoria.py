@@ -222,6 +222,56 @@ def test_una_correccion_no_pisa_lo_que_el_auditor_no_mando(auditoria):
     assert nueva.datos_extraidos.paciente.edad == 58
 
 
+def test_al_aprobar_la_urgencia_se_reevalua_sobre_el_documento_original(almacen):
+    # El defecto que esto ataja: `aprobar` leia el original y lo descartaba,
+    # asi que la urgencia se reevaluaba sobre los campos extraidos. Una orden
+    # que grita "URGENTE. Paciente en shock" en el cuerpo, pero cuyos campos
+    # no recogen ninguna de esas palabras, salia del panel como rutina.
+    documento_id = "DOC-URG-1"
+    original = (
+        "HOSPITAL CENTRAL - GUARDIA DE EMERGENCIAS\n"
+        "ORDEN DE ESTUDIO URGENTE\n"
+        "Paciente: Oscar Daniel Riveros, 61 anos\n"
+        "Caracter: URGENTE. Paciente en shock, hipotenso.\n"
+        "Dra. Veronica Alcaraz - MP 61120"
+    )
+
+    respuesta = a_respuesta_triaje(
+        resultado=AgentResult(
+            document_id=documento_id,
+            classification=ClassificationResult(
+                document_type="orden_procedimiento", confidence=0.95
+            ),
+            # Ni un solo campo repite las palabras del cuerpo.
+            extracted_data=ExtractedData(
+                patient=Patient(name="Oscar Daniel Riveros", age=61),
+                doctor=Doctor(name="Dra. Veronica Alcaraz", license_number="61120"),
+                procedure="Angiotomografia de aorta con contraste",
+            ),
+        ),
+        nivel_prioridad="Rutina",
+        decision_enrutamiento=DecisionEnrutamientoContrato(
+            destino_principal="Cola_Revision_Humana",
+            requiere_auditoria_humana=True,
+            justificacion_enrutamiento="motivo",
+        ),
+        almacenamiento_oci=AlmacenamientoOciContrato(
+            bucket="b", ruta_objeto="x", status_backup="exito"
+        ),
+        status="derivado_revision_humana",
+    )
+
+    almacen.guardar_texto(
+        PREFIJO_AUDITORIA, f"{documento_id}.json", respuesta.model_dump_json()
+    )
+    almacen.guardar_texto(PREFIJO_RECIBIDOS, f"{documento_id}.txt", original)
+
+    nueva = ServicioAuditoria(almacen).aprobar(documento_id, Correcciones())
+
+    assert nueva.clasificacion.nivel_prioridad == "Urgente"
+    assert nueva.decision_enrutamiento.destino_principal == "Cola_Emergencia_Medica"
+
+
 def test_el_auditor_corrige_el_contenido_pero_no_elige_el_destino(auditoria):
     # No hay forma de pedir un destino: Correcciones no tiene ese campo. El
     # grafo sigue siendo la unica autoridad sobre el enrutamiento.
