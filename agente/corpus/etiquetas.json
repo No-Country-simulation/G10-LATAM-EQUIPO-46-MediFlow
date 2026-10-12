@@ -25,7 +25,9 @@
       "paciente.nombre"
     ],
     "nota": "Receta cronica con tres farmacos.",
-    "campos_aceptables": []
+    "campos_aceptables": [
+      "estudio"
+    ]
   },
   {
     "archivo": "003-receta-sin-matricula.txt",

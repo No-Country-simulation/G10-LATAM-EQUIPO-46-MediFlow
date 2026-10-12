@@ -9,8 +9,20 @@
 
 [confianza]
 # Por debajo de este valor, el caso va a revision humana pase lo que pase.
-# Es un valor PROPUESTO, no medido. La calibracion con datos propios es la
-# tarea 4.2; cuando se mida, este es el numero que hay que mover.
+#
+# CALIBRADO sobre los 30 documentos del corpus (12/10/2026). El barrido de
+# `scripts/evaluar_corpus.py` mostro una separacion limpia:
+#
+#     las 29 clasificaciones correctas : confianza entre 0.95 y 1.00
+#     la unica errada                  : confianza 0.65
+#
+# Con 0.70 se atrapa el error y NO se manda ni un caso correcto a revision.
+# Cualquier valor entre 0.70 y 0.95 da el mismo resultado; 0.70 queda en el
+# medio del hueco, que es donde conviene estar para que un caso nuevo algo
+# peor que los medidos tampoco se escape.
+#
+# El numero ya no es una propuesta: esta respaldado. Si el corpus crece,
+# volver a correr el barrido antes de moverlo.
 umbral = 0.70
 
 [urgencia]
