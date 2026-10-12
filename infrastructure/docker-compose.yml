@@ -1,0 +1,37 @@
+# Despliegue de MediFlow en la maquina OCI Compute.
+#
+# Se usa compose y no `docker run` por una razon practica: el comando de
+# arranque queda escrito en un archivo versionado en lugar de en el historial
+# de la terminal de quien lo levanto. Dentro de dos semanas, cuando haya que
+# reiniciarlo, nadie va a recordar los parametros.
+#
+#   docker compose -f infrastructure/docker-compose.yml up -d --build
+
+services:
+  mediflow:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile
+    image: mediflow:latest
+    container_name: mediflow
+
+    # El .env vive SOLO en la maquina, nunca en el repositorio. Se copia a
+    # mano la primera vez y queda ahi.
+    env_file:
+      - ../agente/.env
+
+    ports:
+      - "80:8000"
+
+    # Vuelve a levantar si se cae o si se reinicia la maquina. Sin esto, un
+    # reinicio de la instancia deja la demo sin pagina y nadie se entera
+    # hasta que alguien abre el enlace.
+    restart: unless-stopped
+
+    # Los logs de un contenedor sin limite llenan el disco de una Always
+    # Free, que tiene poco, y la maquina deja de responder.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
