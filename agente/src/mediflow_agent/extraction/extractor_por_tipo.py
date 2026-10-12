@@ -4,9 +4,13 @@ Recibe el tipo que ya determino el clasificador y usa el esquema y el prompt
 que corresponden. Despues verifica el codigo CIE-10 contra el catalogo local y
 lo descarta si no existe.
 
-Ante un tipo desconocido no inventa un esquema: no extrae nada. Un documento
-que no se pudo clasificar va a revision humana de todos modos, y correr una
-extraccion sobre el solo agrega ruido con apariencia de dato.
+Tiene una red de seguridad. La extraccion por tipo solo sirve si la etiqueta
+es la correcta: el prompt de epicrisis pide el diagnostico "de egreso", y ante
+una hoja de triaje mal etiquetada como epicrisis el modelo responde null a
+todo, porque no hay egreso. Sin red, un error de clasificacion no empeora la
+extraccion, la anula. Por eso, cuando el esquema del tipo no cosecha ningun
+dato clinico, se reintenta con el esquema generico, que no supone nada sobre
+la clase de documento.
 """
 
 import logging
@@ -21,11 +25,31 @@ from mediflow_agent.extraction.esquemas_por_tipo import (
     a_datos_comunes,
 )
 from mediflow_agent.config import variable
+from mediflow_agent.extraction.extractor import prompt_generico
 from mediflow_agent.modelos import MODELO_POR_DEFECTO
 from mediflow_agent.schemas.models import ExtractedData
 from mediflow_agent.validacion.cie10 import depurar
 
 _log = logging.getLogger(__name__)
+
+
+def _sin_contenido_clinico(datos: ExtractedData) -> bool:
+    """True si no se cosecho ningun dato clinico, solo quiza paciente y medico.
+
+    El nombre del paciente no cuenta: aparece en el encabezado de cualquier
+    formulario y se extrae aunque el esquema no encaje con el documento.
+    """
+    return not any(
+        (
+            datos.study,
+            datos.diagnosis,
+            datos.findings,
+            datos.conclusion,
+            datos.procedure,
+            datos.medications,
+            datos.suggested_icd10,
+        )
+    )
 
 # Reglas comunes a todos los prompts. Se repiten en cada llamada a proposito:
 # son las que impiden que el modelo rellene huecos por su cuenta.
@@ -129,14 +153,12 @@ class ExtractorPorTipo:
         esquema = ESQUEMA_POR_TIPO.get(tipo_documento)
 
         if esquema is None:
-            # Tipo desconocido: no se extrae. Correr una extraccion sobre un
-            # documento sin clasificar produce ruido con apariencia de dato.
-            return ResultadoExtraccion(
-                datos=ExtractedData(),
-                avisos=(
-                    f"No hay esquema de extraccion para '{tipo_documento}'. "
-                    "No se extrajeron datos; el caso requiere revision humana.",
-                ),
+            # Sin esquema no hay prompt especifico, pero eso no es razon para
+            # devolver el documento vacio: se va directo a la via generica.
+            return self._por_la_via_generica(
+                texto,
+                f"No hay esquema de extraccion para '{tipo_documento}'. "
+                "Se extrajo con el esquema generico.",
             )
 
         prompt = (
@@ -147,10 +169,38 @@ class ExtractorPorTipo:
         especifico = self._llm.with_structured_output(esquema).invoke(prompt)
         datos = a_datos_comunes(especifico)
 
+        # Una cosecha vacia casi siempre significa que la etiqueta no era la
+        # correcta: al prompt de epicrisis se le pide el diagnostico "de
+        # egreso", y una hoja de triaje no tiene egreso, asi que el modelo
+        # responde null a todo y responde bien. Sin esta red, un error de
+        # clasificacion no degrada la extraccion: la anula.
+        if _sin_contenido_clinico(datos):
+            return self._por_la_via_generica(
+                texto,
+                f"El esquema de '{tipo_documento}' no encontro ningun dato "
+                "clinico; probablemente el tipo detectado no corresponda. Se "
+                "reintento con el esquema generico.",
+                especifico=especifico,
+            )
+
         datos, avisos = self._depurar_cie10(datos)
 
         return ResultadoExtraccion(
             datos=datos, especifico=especifico, avisos=tuple(avisos)
+        )
+
+    def _por_la_via_generica(
+        self, texto: str, motivo: str, especifico: Any = None
+    ) -> ResultadoExtraccion:
+        """Extrae los campos comunes sin suponer de que tipo es el documento."""
+        datos = self._llm.with_structured_output(ExtractedData).invoke(
+            prompt_generico(texto)
+        )
+
+        datos, avisos = self._depurar_cie10(datos)
+
+        return ResultadoExtraccion(
+            datos=datos, especifico=especifico, avisos=(motivo, *avisos)
         )
 
     @staticmethod
