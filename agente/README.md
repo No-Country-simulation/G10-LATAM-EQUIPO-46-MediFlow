@@ -207,13 +207,14 @@ Las pruebas **no llaman a Gemini**: el modelo se sustituye por dobles. Corren
 en menos de un segundo y no consumen cuota, que es la contramedida al riesgo
 de quedarse sin llamadas gratuitas a mitad de la semana.
 
-## La consola de triaje
+## La página web de triaje
 
 ```bash
 uvicorn mediflow_agent.api.app:app --app-dir src
 ```
 
-Y abrir `http://127.0.0.1:8000`. La interfaz se sirve desde la misma
+Y abrir `http://127.0.0.1:8000` en el navegador. Es una página web
+normal (HTML, CSS y JavaScript) servida desde la misma
 aplicacion: un solo comando y un solo proceso, sin nada mas que levantar.
 
 **Dos regiones.** A la izquierda, la conversacion: se pega un documento y el
@@ -240,7 +241,7 @@ decide **a donde va**.
 
 | Endpoint | Para que |
 |----------|----------|
-| `GET /` | La consola |
+| `GET /` | La página |
 | `GET /bandeja?prefijo=...` | Casos de un prefijo, urgentes primero |
 | `GET /documentos/{id}` | La decision guardada y el documento original |
 | `POST /documentos/{id}/aprobar` | Correcciones del auditor y re-enrutamiento |

@@ -1,4 +1,4 @@
-/* Consola de triaje MediFlow.
+/* Pagina web de triaje MediFlow.
  *
  * Habla con la misma API que cualquier otro consumidor: no hay atajos ni
  * endpoints privados para la interfaz. Si algo se ve en pantalla, es porque
