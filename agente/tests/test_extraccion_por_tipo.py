@@ -129,6 +129,19 @@ def test_todos_los_prompts_llevan_las_reglas_que_no_se_negocian():
         assert "[ilegible]" in prompt, f"{tipo}: falta la regla de lo ilegible"
 
 
+def test_la_via_generica_lleva_las_mismas_reglas_que_la_via_por_tipo():
+    # La primera version de la red no las llevaba, y la extraccion generica
+    # invento lo que estas reglas prohiben: una dosis suelta en un documento
+    # ilegible y un estudio sacado de un correo administrativo.
+    llm = LlmDoble(DatosReceta())
+    ExtractorPorTipo(llm=llm).extract("texto", "desconocido")
+
+    prompt = llm.prompts[0]
+    assert "[ilegible]" in prompt, "falta la regla de lo ilegible"
+    assert "sin el nombre del farmaco" in prompt, "falta la regla del dato suelto"
+    assert "administrativo" in prompt, "falta la regla del documento no clinico"
+
+
 def test_un_tipo_desconocido_se_extrae_con_el_esquema_generico():
     # Antes no se extraia nada. El problema de eso: un documento fuera de la
     # taxonomia (una hoja de triaje, una interconsulta) salia con todos los

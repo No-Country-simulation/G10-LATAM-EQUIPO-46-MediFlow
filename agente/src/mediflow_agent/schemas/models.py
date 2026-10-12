@@ -25,14 +25,29 @@ class Patient(BaseModel):
 
 
 class Doctor(BaseModel):
+    # Se llama Doctor por compatibilidad con el contrato, pero representa al
+    # profesional responsable del documento. Pedir literalmente "el médico"
+    # dejaba sin profesional a una hoja de triaje firmada por el enfermero
+    # evaluador, que es quien responde por ese documento.
     name: Optional[str] = Field(
         default=None,
-        description="Nombre del médico. Null si no aparece."
+        description=(
+            "Nombre del profesional de salud responsable del documento. "
+            "Preferí el médico que lo firma o lo solicita. Si el documento no "
+            "menciona ningún médico pero sí otro profesional responsable (por "
+            "ejemplo el enfermero que realiza un triaje), usá ese. Null si no "
+            "aparece ninguno."
+        )
     )
 
     license_number: Optional[str] = Field(
         default=None,
-        description="Número de matrícula profesional. Null si no aparece."
+        description=(
+            "Número de matrícula o registro profesional de esa misma persona. "
+            "Null si no aparece. Nunca lo tomes de otro número del documento, "
+            "como el código de registro del formulario o la identificación "
+            "del paciente."
+        )
     )
 
 

@@ -9,34 +9,46 @@ from mediflow_agent.schemas.models import ExtractedData
 load_dotenv()
 
 
+# Las reglas viven aca, y no junto a los prompts por tipo, porque las usan los
+# dos caminos de extraccion. Tenerlas en un solo lugar no es prolijidad: la
+# primera version las tenia solo en el camino por tipo, y cuando la extraccion
+# generica paso a usarse de red de seguridad empezo a inventar justo lo que
+# estas reglas prohiben: una dosis suelta en un documento ilegible, un estudio
+# sacado de un correo administrativo.
+REGLAS = """Reglas que no se negocian:
+
+1. Extrae SOLO lo que aparece explicitamente escrito en el documento.
+2. Si un dato no esta, o esta ilegible, usa null. Nunca lo deduzcas ni lo
+   completes con lo que seria razonable.
+3. No conviertas una sospecha en un diagnostico. "Sospecha de X" no es "X".
+4. Conserva los nombres, numeros y unidades tal como figuran.
+5. Si el documento dice [ilegible] en un dato, ese campo va en null.
+6. Un dato suelto no alcanza: una dosis sin el nombre del farmaco al lado no
+   es un medicamento, y va en null.
+7. Si el documento no trata la atencion de un paciente concreto (un correo
+   administrativo, un aviso de mantenimiento, una circular), todos los campos
+   clinicos van en null, aunque el texto nombre estudios o procedimientos.
+8. El codigo CIE-10 es una sugerencia: null si no hay un diagnostico
+   codificable. Nunca inventes un codigo."""
+
+
 # El prompt vive aparte porque lo usan dos caminos: esta clase, que extrae sin
 # conocer el tipo, y la red de seguridad de ExtractorPorTipo, que recurre a el
 # cuando el esquema del tipo no encajo con el documento.
 def prompt_generico(texto: str) -> str:
     """Pide los campos comunes sin suponer de que clase de documento se trata."""
-    return f"""
-                    Eres un extractor de información para el sistema MediFlow.
+    return f"""Eres un extractor de informacion para el sistema MediFlow.
 
-                    Extrae únicamente información que aparezca explícitamente
-                    en el documento.
+Extrae unicamente informacion que aparezca explicitamente en el documento. No
+sabes de que clase de documento se trata, asi que no supongas que campos
+deberia tener: deja en null todo lo que no este escrito.
 
-                    Reglas importantes:
+{REGLAS}
 
-                        1. NO inventes datos.
-                        2. Si un dato no aparece, utiliza null.
-                        3. No conviertas una inferencia médica en un hecho.
-                        4. El diagnóstico debe ser extraído únicamente si aparece
-                        explícitamente en el documento.
-                        5. suggested_icd10 es solamente una sugerencia y debe ser null
-                        si no existe evidencia suficiente.
-                        6. Conserva los nombres y datos tal como aparecen cuando sea posible.
-                        7. Extrae medicamentos, estudios y procedimientos únicamente
-                        si aparecen en el documento.
+Documento:
 
-                    Documento:
-
-                    {texto}
-                """
+{texto}
+"""
 
 
 class DocumentExtractor:

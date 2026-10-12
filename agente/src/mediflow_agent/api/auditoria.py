@@ -20,6 +20,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
+from mediflow_agent.ingestion.base import DocumentoNormalizado
 from mediflow_agent.routing.baseline import decidir_enrutamiento
 from mediflow_agent.schemas.models import (
     AgentResult,
@@ -270,6 +271,10 @@ class ServicioAuditoria:
         clasificacion, datos = _a_modelos_internos(respuesta)
         datos = _aplicar(datos, correcciones)
 
+        # El original va al grafo, no solo los campos corregidos. Si no, la
+        # urgencia se reevalua sobre lo extraido, y una orden que dice
+        # "URGENTE. Paciente en shock" en el cuerpo pero cuyos campos no
+        # recogen ninguna de esas palabras saldria del panel como rutina.
         texto = self.original(documento_id) or ""
 
         nivel, decision, status = decidir_enrutamiento(
@@ -277,7 +282,13 @@ class ServicioAuditoria:
             clasificacion=clasificacion,
             datos=datos,
             canal_origen="Panel_Auditoria",
+            documento=(
+                DocumentoNormalizado(texto=texto, origen="texto_plano")
+                if texto
+                else None
+            ),
             llm=self._llm,
+            revisado_por_humano=True,
         )
 
         quien = correcciones.auditor.strip() or "un auditor"
