@@ -407,6 +407,11 @@ code, .mono, pre { font-family: "IBM Plex Mono", ui-monospace, monospace; }
 
 /* ===================== panel de auditoría ===================== */
 
+/* El `display: flex` de .velo gana por especificidad al `[hidden]` del
+   navegador, asi que el panel quedaba visible al cargar la pagina. Hay que
+   devolverle el efecto al atributo de forma explicita. */
+.velo[hidden] { display: none; }
+
 .velo {
   position: fixed; inset: 0;
   background: rgba(4,8,11,.78);
