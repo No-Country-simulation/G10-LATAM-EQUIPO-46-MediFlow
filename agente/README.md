@@ -25,7 +25,7 @@ cinco destinos, está en el
 * **Pydantic v2** (validación de estructuras de datos)
 * **FastAPI + uvicorn** (API y página de triaje)
 * **pypdfium2** (lectura de la capa de texto de los PDF)
-* **Pytest** (287 pruebas, ninguna llama al modelo)
+* **Pytest** (299 pruebas, ninguna llama al modelo)
 
 El grafo de decisión es Python puro, no LangGraph. El enunciado admite
 *"pipeline condicional en Python con bifurcaciones"*, y esa vía permite
