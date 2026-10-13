@@ -2,29 +2,34 @@
 
 Módulo de inteligencia artificial encargado del procesamiento y análisis de documentos clínicos para el proyecto MediFlow.
 
-## Sprint 1
-
-El primer sprint implementa el núcleo inicial del agente mediante el siguiente flujo secuencial:
+## El flujo
 
 ```mermaid
 flowchart TD
-    A["Documento de texto"] --> B["Clasificacion"]
-    B --> C["Extraccion"]
-    C --> D["Validacion Pydantic"]
-    D --> E["JSON estructurado"]
+    A["Ingesta: PDF, imagen, texto o JSON"] --> B["Clasificacion"]
+    B --> C["Extraccion segun el tipo"]
+    C --> D["Validacion Pydantic y verificacion del CIE-10"]
+    D --> E["Grafo de decision"]
+    E --> F["Persistencia en OCI y JSON estructurado"]
 ```
 
-El grafo de decisión completo, con el enrutamiento a los cinco destinos, está en
-el [README de la raíz](../README.md#grafo-de-decisión-del-agente). Este diagrama
-muestra solo lo que el Sprint 1 implementa hoy.
+El grafo de decisión completo, con sus nueve pasos y el enrutamiento a los
+cinco destinos, está en el
+[README de la raíz](../README.md#grafo-de-decisión-del-agente).
 
 ## Tecnologías
 
-* **Python** (Núcleo del desarrollo)
-* **Gemini** (Modelo de Lenguaje / LLM)
-* **LangChain / LangGraph** (Orquestación del Agente)
-* **Pydantic** (Validación de estructuras de datos)
-* **Pytest** (Pruebas unitarias y automatizadas)
+* **Python 3.12** (núcleo del desarrollo)
+* **Gemini** (modelo de lenguaje; también transcribe escaneos e imágenes)
+* **LangChain** (integración con el modelo y salida estructurada)
+* **Pydantic v2** (validación de estructuras de datos)
+* **FastAPI + uvicorn** (API y página de triaje)
+* **pypdfium2** (lectura de la capa de texto de los PDF)
+* **Pytest** (287 pruebas, ninguna llama al modelo)
+
+El grafo de decisión es Python puro, no LangGraph. El enunciado admite
+*"pipeline condicional en Python con bifurcaciones"*, y esa vía permite
+recorrer todas las ramas en las pruebas sin levantar nada ni gastar cuota.
 
 ## Categorías de Clasificación
 

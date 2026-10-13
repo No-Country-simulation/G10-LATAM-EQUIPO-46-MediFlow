@@ -98,14 +98,49 @@ cortó y hay que investigarlo.
 
 | Capa                  | Tecnología                          |
 |-----------------------|-------------------------------------|
-| Lenguaje              | Python                              |
-| Modelo de lenguaje    | Google Gemini                       |
-| Orquestación          | LangChain / LangGraph               |
-| Validación de datos   | Pydantic                            |
-| Pruebas               | Pytest                              |
-| API                   | *(a confirmar: FastAPI o Flask)*    |
-| Interfaz de triaje    | *(a confirmar: Streamlit o Gradio)* |
+| Lenguaje              | Python 3.12                         |
+| Modelo de lenguaje    | Google Gemini (`gemini-3.5-flash-lite`) |
+| Integración con el modelo | LangChain, con salida estructurada por Pydantic |
+| Grafo de decisión     | Python puro, bifurcaciones explícitas |
+| Validación de datos   | Pydantic v2                         |
+| Pruebas               | Pytest — 287                        |
+| API                   | FastAPI + uvicorn                   |
+| Interfaz de triaje    | Página web propia (HTML, CSS y JS sin framework) |
+| Lectura de PDF        | pypdfium2; escaneos e imágenes se transcriben con Gemini |
 | Almacenamiento        | OCI Object Storage, capa Always Free |
+| Despliegue            | Docker sobre OCI Compute, capa Always Free |
+
+Dos decisiones que conviene explicar, porque el enunciado sugiere otra cosa:
+
+- **El grafo es Python puro, no LangGraph.** El enunciado admite las tres vías
+  —LangGraph, n8n o *"pipeline condicional en Python con bifurcaciones"*— y la
+  tercera permite que el grafo sea una función sin estado, con 287 pruebas que
+  recorren sus ramas sin levantar nada ni llamar al modelo. Esa testabilidad
+  pesó más que el framework.
+- **La interfaz no es Streamlit ni Gradio.** El enunciado las sugiere pero
+  permite *"frameworks web equivalentes"*. Una página propia servida por el
+  mismo FastAPI evita un segundo proceso en una máquina Always Free de 1 GB.
+
+## Reglas de triaje configurables
+
+El gestor hospitalario cambia el comportamiento del agente editando
+[`agente/config/triaje.toml`](agente/config/triaje.toml), **sin tocar el código
+fuente ni reconstruir la imagen**:
+
+| Sección | Qué controla |
+|---------|--------------|
+| `[confianza]` | Por debajo de qué confianza un caso va a revisión humana |
+| `[urgencia]` | Qué vías de detección están activas y qué canales elevan la prioridad |
+| `[destinos]` | A qué departamento va cada tipo de documento |
+| `[rendimiento]` | Límites de ritmo contra la cuota del modelo |
+
+Precedencia: variable de entorno, luego archivo, luego valor por defecto.
+
+Un tipo de documento que no figure en `[destinos]` **se queda sin ruta
+automática y escala a revisión humana**. Es a propósito: así se desactiva un
+destino que todavía no está listo para recibir documentos sin supervisión. Un
+destino mal escrito se descarta con un aviso en el log en vez de impedir el
+arranque — un error de tipeo en un TOML no puede dejar una guardia sin triaje.
 
 ## Ejecución
 
@@ -117,20 +152,35 @@ El módulo del agente tiene su propia guía de instalación y ejecución:
 
 ## Estado del Proyecto
 
-Actualmente se encuentra en desarrollo el **Sprint 1** del módulo **Agent**.
+**Semana 4 completa.** El agente está desplegado y accesible en
+**http://159.112.180.217**. Los siete requisitos mínimos del enunciado están
+cubiertos y cuatro de los cinco diferenciales también.
 
-El plan completo de las cinco semanas, con las tres entregas de cada una y el
-reparto entre los dos equipos, está en la
+| Semana | Fechas          | Hito                      | Estado |
+|--------|-----------------|---------------------------|--------|
+| 1      | 21 al 27 sep    | Esqueleto vivo            | Hecho  |
+| 2      | 28 sep al 4 oct | Lee cualquier formato     | Hecho  |
+| 3      | 5 al 11 oct     | El agente decide          | Hecho  |
+| 4      | 12 al 18 oct    | Producto y panel humano   | Hecho  |
+| 5      | 19 al 25 oct    | Entrega                   | Video demo pendiente |
+
+El plan completo de las cinco semanas está en la
 **[página del plan de ejecución](docs/index.html)**, un archivo HTML que se
 abre con doble clic una vez que clonaste el repositorio.
 
-| Semana | Fechas          | Hito                      |
-|--------|-----------------|---------------------------|
-| 1      | 21 al 27 sep    | Esqueleto vivo            |
-| 2      | 28 sep al 4 oct | Lee cualquier formato     |
-| 3      | 5 al 11 oct     | El agente decide          |
-| 4      | 12 al 18 oct    | Producto y panel humano   |
-| 5      | 19 al 25 oct    | Entrega                   |
+### Cómo se verifica
+
+| Qué | Cómo |
+|-----|------|
+| Nada se rompió | `pytest -q` en `agente/` — 287 pruebas, sin llamar al modelo |
+| Qué tan bien acierta | `python scripts/evaluar_corpus.py` sobre 30 documentos etiquetados |
+| Que ningún urgente se escape | `python scripts/evaluar_urgencia.py` sobre 95 frases clínicas |
+
+Medido sobre el corpus, en tres corridas: clasificación 29/30, cobertura de
+campos entre 97% y 99%, y **cero falsos negativos de urgencia en las tres**.
+El modelo no es determinista, así que una sola corrida no sostiene una
+afirmación sobre décimas: los números de arriba son el rango observado, no un
+punto.
 
 Fecha límite de entrega: **27 de octubre de 2026**.
 

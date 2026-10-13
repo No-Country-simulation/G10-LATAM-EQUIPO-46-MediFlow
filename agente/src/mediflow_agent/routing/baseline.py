@@ -1,13 +1,14 @@
-"""Enrutamiento de linea base.
+"""El grafo de decision del agente.
 
-ALCANCE. Esto NO es el grafo de decision definitivo. El grafo completo, con la
-deteccion de urgencia por doble via y los umbrales configurables desde archivo,
-son las tareas 3.1 y 3.2 de la semana 3.
+Nueve pasos en orden, cada uno con su razon de estar donde esta. El diagrama
+que los dibuja vive en el README; si se toca el orden de aqui, hay que tocarlo
+alla tambien.
 
-Esta version existe porque el contrato del enunciado exige que la respuesta
-traiga `decision_enrutamiento` con una justificacion no vacia: sin algo que
-decida, el endpoint de la tarea 1.3 no puede devolver una respuesta valida.
-Es deliberadamente simple y esta pensada para ser reemplazada entera.
+Lo que se decide fuera del codigo, en `config/triaje.toml`: el umbral de
+confianza, los canales que elevan la prioridad y el destino de cada tipo de
+documento. Es el diferencial que pide el enunciado —que un gestor hospitalario
+ajuste el triaje sin tocar el codigo fuente— y por eso no hay ninguna de esas
+tres cosas escrita a mano aca.
 
 Respeta las dos reglas que el proyecto no negocia:
 
@@ -21,9 +22,11 @@ como rutina. Por eso la deteccion de urgencia corre ANTES que cualquier otra
 regla y, cuando dispara, no hay ruta que la anule.
 """
 
+import logging
 import unicodedata
+from typing import get_args
 
-from mediflow_agent.config import ajuste
+from mediflow_agent.config import ajuste, cargar_archivo
 
 from mediflow_agent.ingestion.base import DocumentoNormalizado
 from mediflow_agent.routing.reglas_documento import (
@@ -41,9 +44,11 @@ from mediflow_agent.serialization.contract import (
     StatusTriaje,
 )
 
+_log = logging.getLogger(__name__)
+
 # Por debajo de esta confianza, el caso va a revision humana pase lo que pase.
-# Es un valor propuesto, no medido: la calibracion con datos propios es la
-# tarea 4.2. Configurable por entorno para poder moverlo sin tocar codigo.
+# La evidencia detras del valor, y sus limites, estan en `config/triaje.toml`.
+# Configurable por entorno para poder moverlo sin tocar codigo.
 UMBRAL_CONFIANZA = ajuste(
     "confianza", "umbral", 0.70, "MEDIFLOW_UMBRAL_CONFIANZA"
 )
@@ -64,13 +69,58 @@ CANALES_PRIORITARIOS = frozenset(
 # todavia, una persona. En una receta puede ser la dosis.
 MARCA_ILEGIBLE = "[ilegible]"
 
-DESTINO_POR_TIPO: dict[str, DestinoEnrutamiento] = {
+DESTINOS_POR_DEFECTO: dict[str, DestinoEnrutamiento] = {
     "receta_medica": "Farmacia_Hospitalaria",
     "orden_procedimiento": "Auditoria_Autorizaciones",
     "informe_estudio_diagnostico": "Historia_Clinica_Electronica",
     "epicrisis": "Historia_Clinica_Electronica",
     "certificado_medico": "Historia_Clinica_Electronica",
 }
+
+
+def destinos_configurados(ruta=None) -> dict[str, DestinoEnrutamiento]:
+    """Mapa de tipo de documento a destino, leido de `config/triaje.toml`.
+
+    Es lo que habilita el diferencial del enunciado: que un gestor hospitalario
+    cambie a donde va cada tipo de documento sin tocar el codigo fuente.
+
+    La seccion `[destinos]` del archivo, cuando existe, MANDA: un tipo que no
+    figure en ella se queda sin ruta y escala a revision humana. Es a
+    proposito. Si se completara con el valor por defecto, quitar una linea del
+    archivo no tendria ningun efecto visible y el gestor no podria desactivar
+    una ruta automatica, que es justo lo que querria hacer ante un destino que
+    todavia no esta listo para recibir documentos solo.
+
+    Un destino mal escrito se descarta con un aviso en el log en lugar de
+    tumbar el arranque: un error de tipeo en la configuracion no puede dejar
+    al hospital sin triaje. Ese tipo se queda sin ruta y, por lo tanto,
+    escala.
+    """
+    seccion = cargar_archivo(ruta).get("destinos")
+
+    if not isinstance(seccion, dict) or not seccion:
+        return dict(DESTINOS_POR_DEFECTO)
+
+    validos = set(get_args(DestinoEnrutamiento))
+    mapa: dict[str, DestinoEnrutamiento] = {}
+
+    for tipo, destino in seccion.items():
+        if destino in validos:
+            mapa[tipo] = destino
+        else:
+            _log.warning(
+                "Destino invalido en config/triaje.toml para '%s': %r. Los "
+                "destinos validos son %s. Ese tipo escalara a revision "
+                "humana.",
+                tipo,
+                destino,
+                ", ".join(sorted(validos)),
+            )
+
+    return mapa
+
+
+DESTINO_POR_TIPO: dict[str, DestinoEnrutamiento] = destinos_configurados()
 
 
 def _normalizar(texto: str) -> str:
