@@ -17,6 +17,7 @@ from concurrent.futures import ThreadPoolExecutor
 from mediflow_agent.ingestion.base import DocumentoNormalizado, ErrorDeIngesta
 from mediflow_agent.ingestion.ingestor import Ingestor
 from mediflow_agent.modelos import PRESUPUESTO_SEGUNDOS
+from mediflow_agent.notificaciones import enviar_alerta
 from mediflow_agent.routing.baseline import decidir_enrutamiento
 from mediflow_agent.schemas.models import (
     AgentResult,
@@ -72,6 +73,7 @@ class ServicioTriaje:
         almacenamiento: AlmacenamientoDocumentos,
         ingestor: Ingestor | None = None,
         llm_urgencia=None,
+        notificador=None,
     ):
         self._clasificador = clasificador
         self._extractor = extractor
@@ -82,6 +84,10 @@ class ServicioTriaje:
         # sigue triando con la via por lista: es el piso que queda en pie si
         # se agota la cuota.
         self._llm_urgencia = llm_urgencia
+
+        # Entrega de la alerta de guardia. Se inyecta para poder probar el
+        # envio sin abrir una conexion de red en las pruebas.
+        self._notificar = notificador or enviar_alerta
 
     # -- pasos ----------------------------------------------------------
 
@@ -328,5 +334,26 @@ class ServicioTriaje:
                     )
                 }
             )
+
+        # La alerta se manda DESPUES de persistir. Al reves, un webhook lento
+        # retrasaria el guardado, y una guardia avisada de un caso que todavia
+        # no esta en el bucket no tendria donde ir a verlo. `enviar_alerta` no
+        # levanta excepciones: un canal caido no invalida un triaje resuelto.
+        if decision.notificacion_generada is not None:
+            try:
+                self._notificar(
+                    mensaje=decision.notificacion_generada.mensaje,
+                    documento_id=solicitud.documento_id,
+                )
+            except Exception:
+                # `enviar_alerta` ya atrapa lo suyo, pero el notificador es
+                # inyectable y manana puede ser otro. La garantia de que un
+                # canal caido no tumba un triaje se defiende aca, en el
+                # limite, y no en la buena conducta de quien se enchufe.
+                _log.exception(
+                    "Fallo el envio de la alerta de %s. El triaje se completo "
+                    "igual y el documento ya esta guardado.",
+                    solicitud.documento_id,
+                )
 
         return respuesta

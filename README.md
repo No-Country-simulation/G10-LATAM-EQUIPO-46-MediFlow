@@ -142,6 +142,27 @@ destino que todavía no está listo para recibir documentos sin supervisión. Un
 destino mal escrito se descarta con un aviso en el log en vez de impedir el
 arranque — un error de tipeo en un TOML no puede dejar una guardia sin triaje.
 
+## Alertas en tiempo real
+
+Ante un hallazgo crítico el agente genera una notificación, que siempre viaja
+en el JSON de la respuesta como fija el contrato. Si además se configura un
+canal, **se entrega de verdad**:
+
+```env
+MEDIFLOW_ALERTA_WEBHOOK=https://hooks.slack.com/services/...
+# o, por correo:
+MEDIFLOW_SMTP_HOST=smtp.gmail.com
+MEDIFLOW_ALERTA_EMAIL=guardia@hospital.ejemplo
+```
+
+El webhook sirve para Slack, Discord, Teams o un nodo Webhook de n8n. Sin nada
+configurado el sistema funciona igual y no intenta salir a la red.
+
+**Un canal caído nunca invalida un triaje.** La alerta se envía *después* de
+persistir el documento, con cinco segundos de límite, y cualquier fallo queda
+en el log. El orden importa: al revés, una guardia avisada de un caso que
+todavía no está en el bucket no tendría dónde ir a verlo.
+
 ## Ejecución
 
 El módulo del agente tiene su propia guía de instalación y ejecución:

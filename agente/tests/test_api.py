@@ -79,7 +79,9 @@ def almacen(tmp_path):
 def cliente(almacen):
     """Cliente con el servicio real pero el modelo sustituido."""
 
-    def _construir(clasificador=None, extractor=None, transcripcion=None):
+    def _construir(
+        clasificador=None, extractor=None, transcripcion=None, notificador=None
+    ):
         servicio = ServicioTriaje(
             clasificador=clasificador or ClasificadorDoble(),
             extractor=extractor or ExtractorDoble(),
@@ -87,6 +89,9 @@ def cliente(almacen):
             ingestor=Ingestor(transcriptor=TranscriptorDoble(transcripcion))
             if transcripcion is not None
             else Ingestor(transcriptor=TranscriptorDoble()),
+            # Sin doble se usa el envio real, que no hace nada mientras no
+            # haya webhook ni SMTP configurados: las pruebas no salen a la red.
+            notificador=notificador,
         )
         app.dependency_overrides[obtener_servicio] = lambda: servicio
         return TestClient(app)
@@ -427,3 +432,87 @@ def test_el_presupuesto_de_tiempo_esta_declarado():
     from mediflow_agent.modelos import PRESUPUESTO_SEGUNDOS
 
     assert PRESUPUESTO_SEGUNDOS == 10.0
+
+
+# --- alerta de guardia -----------------------------------------------------
+
+class NotificadorDoble:
+    """Registra las alertas en vez de salir a la red."""
+
+    def __init__(self, error=None):
+        self.enviadas = []
+        self._error = error
+
+    def __call__(self, mensaje, documento_id):
+        if self._error:
+            raise self._error
+        self.enviadas.append((documento_id, mensaje))
+        return True, "doble"
+
+
+def test_un_caso_urgente_dispara_la_alerta_de_guardia(cliente):
+    notificador = NotificadorDoble()
+    respuesta = cliente(notificador=notificador).post(
+        "/triaje", json=_solicitud(canal_origen="Guardia_Emergencias")
+    )
+
+    assert respuesta.status_code == 200
+    assert len(notificador.enviadas) == 1
+
+    documento_id, mensaje = notificador.enviadas[0]
+    assert documento_id == "DOC-CLIN-2026-8942"
+    assert "ALERTA URGENTE" in mensaje
+
+    # Lo que se manda es exactamente lo que viaja en el JSON del contrato.
+    cuerpo = respuesta.json()
+    assert cuerpo["decision_enrutamiento"]["notificacion_generada"]["mensaje"] == mensaje
+
+
+def test_un_caso_de_rutina_no_molesta_a_la_guardia(cliente):
+    notificador = NotificadorDoble()
+    clasificador = ClasificadorDoble(
+        resultado=ClassificationResult(
+            document_type="certificado_medico",
+            specialty="Medicina del Deporte",
+            confidence=0.98,
+        )
+    )
+    extractor = ExtractorDoble(
+        resultado=ExtractedData(
+            patient=Patient(name="Ana Lucia Benitez", age=29),
+            doctor=Doctor(name="Dra. Ines Marecos", license_number="50318"),
+            conclusion="Apta para actividad deportiva recreativa",
+        )
+    )
+
+    respuesta = cliente(
+        clasificador=clasificador, extractor=extractor, notificador=notificador
+    ).post(
+        "/triaje",
+        json=_solicitud(
+            documento_texto=(
+                "CERTIFICADO MEDICO. Paciente: Ana Lucia Benitez, 29 anos. "
+                "Se certifica aptitud para actividad deportiva recreativa. "
+                "Dra. Ines Marecos MP 50318."
+            ),
+            canal_origen="Recepcion",
+        ),
+    )
+
+    assert respuesta.json()["clasificacion"]["nivel_prioridad"] != "Urgente"
+    assert notificador.enviadas == []
+
+
+def test_si_la_alerta_falla_el_triaje_se_entrega_igual(cliente):
+    # El documento ya se clasifico, se enruto y se guardo. Que el canal de
+    # guardia este caido no puede convertir eso en un error para el hospital.
+    notificador = NotificadorDoble(error=RuntimeError("webhook caido"))
+
+    respuesta = cliente(notificador=notificador).post(
+        "/triaje", json=_solicitud(canal_origen="Guardia_Emergencias")
+    )
+
+    assert respuesta.status_code == 200
+    assert respuesta.json()["decision_enrutamiento"]["destino_principal"] == (
+        "Cola_Emergencia_Medica"
+    )
