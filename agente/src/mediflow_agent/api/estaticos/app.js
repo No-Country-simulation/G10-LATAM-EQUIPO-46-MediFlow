@@ -428,6 +428,169 @@ async function mostrarOrigen() {
   }
 }
 
+/* ===================== reglas de triaje ===================== */
+
+// El diferencial del enunciado: el gestor hospitalario cambia el
+// comportamiento del agente sin tocar el codigo fuente.
+//
+// La clave NO se guarda en ningun lado. Se escribe, se manda en la cabecera
+// del pedido y se limpia. Guardarla en localStorage la dejaria en el
+// navegador de cualquiera que use esta computadora, y la pagina es publica.
+
+let reglasVigentes = null;
+
+const ETIQUETA_TIPO = {
+  receta_medica: "Receta médica",
+  orden_procedimiento: "Orden de procedimiento",
+  informe_estudio_diagnostico: "Informe de estudio",
+  epicrisis: "Epicrisis",
+  certificado_medico: "Certificado médico",
+};
+
+const ETIQUETA_DESTINO = {
+  Cola_Emergencia_Medica: "Cola de Emergencia Médica",
+  Auditoria_Autorizaciones: "Auditoría de Autorizaciones",
+  Farmacia_Hospitalaria: "Farmacia Hospitalaria",
+  Historia_Clinica_Electronica: "Historia Clínica Electrónica",
+  Cola_Revision_Humana: "Cola de Revisión Humana",
+};
+
+async function abrirReglas() {
+  const r = await fetch("/configuracion");
+
+  if (!r.ok) return;
+
+  const datos = await r.json();
+  reglasVigentes = datos;
+
+  const editable = datos.editable;
+  const bloqueado = (datos.bloqueados_por_entorno || []).includes(
+    "umbral_confianza"
+  );
+
+  $("reglas-modo").textContent = editable
+    ? "Los cambios rigen desde el documento siguiente"
+    : "Solo lectura: no hay clave de administración en el servidor";
+
+  $("r-umbral").value = datos.reglas.umbral_confianza;
+  $("r-canales").value = datos.reglas.canales_prioritarios.join(", ");
+
+  $("r-umbral").disabled = !editable || bloqueado;
+  $("r-canales").disabled = !editable;
+  $("r-clave").hidden = !editable;
+  $("r-clave").value = "";
+  $("guardar-reglas").hidden = !editable;
+
+  $("r-umbral-ayuda").textContent = bloqueado
+    ? "Fijado por la variable de entorno MEDIFLOW_UMBRAL_CONFIANZA, que tiene precedencia sobre el archivo. Para moverlo desde acá, quitala del .env del servidor."
+    : "Por debajo de este valor, el caso va a revisión humana pase lo que pase.";
+
+  const destinos = $("form-destinos");
+  destinos.innerHTML = "";
+
+  for (const tipo of datos.tipos_validos) {
+    const fila = document.createElement("label");
+    fila.className = "ancho";
+
+    const nombre = document.createElement("span");
+    nombre.textContent = ETIQUETA_TIPO[tipo] || tipo;
+
+    const selector = document.createElement("select");
+    selector.dataset.tipo = tipo;
+    selector.disabled = !editable;
+
+    const sinRuta = document.createElement("option");
+    sinRuta.value = "";
+    sinRuta.textContent = "— sin ruta: va a revisión humana —";
+    selector.appendChild(sinRuta);
+
+    for (const destino of datos.destinos_validos) {
+      const opcion = document.createElement("option");
+      opcion.value = destino;
+      opcion.textContent = ETIQUETA_DESTINO[destino] || destino;
+      selector.appendChild(opcion);
+    }
+
+    selector.value = datos.reglas.destinos[tipo] || "";
+
+    fila.appendChild(nombre);
+    fila.appendChild(selector);
+    destinos.appendChild(fila);
+  }
+
+  $("reglas-aviso").textContent = "";
+  $("velo-reglas").hidden = false;
+}
+
+function cerrarReglas() {
+  $("velo-reglas").hidden = true;
+  // La clave no sobrevive al cierre del panel.
+  $("r-clave").value = "";
+}
+
+async function guardarReglas() {
+  const boton = $("guardar-reglas");
+  const aviso = $("reglas-aviso");
+
+  const destinos = {};
+  document.querySelectorAll("#form-destinos select").forEach((s) => {
+    if (s.value) destinos[s.dataset.tipo] = s.value;
+  });
+
+  const canales = $("r-canales")
+    .value.split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
+
+  boton.disabled = true;
+  boton.textContent = "Guardando…";
+  aviso.textContent = "";
+
+  try {
+    const r = await fetch("/configuracion", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Admin-Clave": $("r-clave").value,
+      },
+      body: JSON.stringify({
+        umbral_confianza: Number($("r-umbral").value),
+        canales_prioritarios: canales,
+        destinos: destinos,
+      }),
+    });
+
+    const datos = await r.json();
+
+    if (!r.ok) {
+      aviso.textContent = mensajeDeError(datos, r.status);
+      return;
+    }
+
+    aviso.textContent = "Guardado. Rige desde el próximo documento.";
+    $("r-clave").value = "";
+  } catch (err) {
+    aviso.textContent = "No se pudo contactar al servidor.";
+  } finally {
+    boton.disabled = false;
+    boton.textContent = "Guardar reglas";
+  }
+}
+
+function mensajeDeError(datos, estado) {
+  if (estado === 401) return "Clave incorrecta.";
+  if (estado === 403) return "La edición está deshabilitada en el servidor.";
+
+  if (Array.isArray(datos.detail)) {
+    // Un error de validacion de Pydantic: se muestra el motivo, no el objeto.
+    return datos.detail
+      .map((d) => (d.msg || "").replace(/^Value error,\s*/, ""))
+      .join(" ");
+  }
+
+  return typeof datos.detail === "string" ? datos.detail : "No se pudo guardar.";
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   $("redactor").addEventListener("submit", enviar);
   $("refrescar").addEventListener("click", cargarBandeja);
@@ -435,12 +598,23 @@ document.addEventListener("DOMContentLoaded", () => {
   $("cancelar-auditoria").addEventListener("click", cerrarAuditoria);
   $("aprobar").addEventListener("click", aprobar);
 
+  $("abrir-reglas").addEventListener("click", abrirReglas);
+  $("cerrar-reglas").addEventListener("click", cerrarReglas);
+  $("cancelar-reglas").addEventListener("click", cerrarReglas);
+  $("guardar-reglas").addEventListener("click", guardarReglas);
+
   $("velo").addEventListener("click", (e) => {
     if (e.target === $("velo")) cerrarAuditoria();
   });
 
+  $("velo-reglas").addEventListener("click", (e) => {
+    if (e.target === $("velo-reglas")) cerrarReglas();
+  });
+
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !$("velo").hidden) cerrarAuditoria();
+    if (e.key !== "Escape") return;
+    if (!$("velo").hidden) cerrarAuditoria();
+    if (!$("velo-reglas").hidden) cerrarReglas();
   });
 
   document.querySelectorAll("[data-ejemplo]").forEach((boton) => {

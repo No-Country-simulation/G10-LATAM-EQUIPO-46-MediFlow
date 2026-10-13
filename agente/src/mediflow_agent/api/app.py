@@ -14,6 +14,7 @@ completa.
 """
 
 import os
+import secrets
 from functools import lru_cache
 from pathlib import Path
 
@@ -22,6 +23,7 @@ from fastapi import (
     FastAPI,
     File,
     Form,
+    Header,
     HTTPException,
     UploadFile,
     status as http_status,
@@ -30,6 +32,7 @@ from fastapi import (
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from mediflow_agent.api import configuracion as cfg
 from mediflow_agent.api.auditoria import Correcciones, ServicioAuditoria
 from mediflow_agent.api.servicio import ServicioTriaje
 from mediflow_agent.config import variable
@@ -233,6 +236,66 @@ def aprobar(
 def salud() -> dict[str, str]:
     """Comprueba que el servicio esta arriba. No llama al modelo."""
     return {"status": "ok", "servicio": "mediflow-triaje"}
+
+
+# --- reglas de triaje configurables ---------------------------------------
+#
+# El diferencial del enunciado. Leer es libre; escribir exige la clave de
+# MEDIFLOW_ADMIN_CLAVE, porque la pagina esta abierta a internet y sin eso
+# cualquiera podria desactivar la revision humana de todo el sistema.
+
+
+@app.get("/configuracion", tags=["configuracion"])
+def ver_configuracion() -> dict:
+    """Las reglas de triaje vigentes, tal como las usa el agente ahora."""
+    return {
+        "reglas": cfg.leer().model_dump(),
+        "editable": bool(variable("MEDIFLOW_ADMIN_CLAVE")),
+        "bloqueados_por_entorno": cfg.bloqueados_por_entorno(),
+        "destinos_validos": list(cfg.DESTINOS_VALIDOS),
+        "tipos_validos": list(cfg.TIPOS_VALIDOS),
+    }
+
+
+@app.put("/configuracion", tags=["configuracion"])
+def guardar_configuracion(
+    reglas: cfg.ReglasTriaje,
+    x_admin_clave: str | None = Header(default=None),
+) -> dict:
+    """Reemplaza las reglas de triaje. Rige desde el documento siguiente."""
+    esperada = variable("MEDIFLOW_ADMIN_CLAVE")
+
+    if not esperada:
+        raise HTTPException(
+            status_code=http_status.HTTP_403_FORBIDDEN,
+            detail=(
+                "La edicion esta deshabilitada: no hay MEDIFLOW_ADMIN_CLAVE "
+                "configurada en el servidor. El panel queda en solo lectura."
+            ),
+        )
+
+    # `compare_digest` en lugar de `==`: comparar cadenas con != corta en la
+    # primera diferencia, y ese tiempo distinto deja adivinar la clave
+    # caracter por caracter.
+    if not x_admin_clave or not secrets.compare_digest(x_admin_clave, esperada):
+        raise HTTPException(
+            status_code=http_status.HTTP_401_UNAUTHORIZED,
+            detail="Clave de administracion incorrecta o ausente.",
+        )
+
+    try:
+        vigentes = cfg.guardar(reglas)
+    except OSError as error:
+        raise HTTPException(
+            status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"No se pudo escribir el archivo de reglas: {error}",
+        ) from error
+
+    return {
+        "reglas": vigentes.model_dump(),
+        "editable": True,
+        "bloqueados_por_entorno": cfg.bloqueados_por_entorno(),
+    }
 
 
 @app.post(

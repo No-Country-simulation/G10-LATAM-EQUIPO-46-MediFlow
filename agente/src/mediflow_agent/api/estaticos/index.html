@@ -19,6 +19,7 @@
   </div>
 
   <div class="estado">
+    <button type="button" class="boton-reglas" id="abrir-reglas">Reglas de triaje</button>
     <span class="punto" id="punto-estado"></span>
     <span id="texto-estado">conectando…</span>
   </div>
@@ -160,6 +161,74 @@
       <div class="acciones">
         <button type="button" class="secundario" id="cancelar-auditoria">Cancelar</button>
         <button type="button" class="principal" id="aprobar">Aprobar y re-enrutar</button>
+      </div>
+    </footer>
+
+  </section>
+</div>
+
+<div class="velo" id="velo-reglas" hidden>
+  <section class="auditoria reglas" role="dialog" aria-modal="true" aria-labelledby="titulo-reglas">
+
+    <header>
+      <div>
+        <h2 id="titulo-reglas">Reglas de triaje</h2>
+        <p class="id-doc" id="reglas-modo">—</p>
+      </div>
+      <button type="button" id="cerrar-reglas" aria-label="Cerrar">&times;</button>
+    </header>
+
+    <div class="cuerpo">
+      <div class="columna">
+        <h3>Confianza y urgencia</h3>
+        <p class="ayuda">
+          Lo que cambies acá rige <strong>desde el documento siguiente</strong>,
+          sin reiniciar el servicio.
+        </p>
+
+        <form id="form-reglas">
+          <label class="ancho">
+            <span>Umbral de confianza</span>
+            <input type="number" id="r-umbral" min="0" max="1" step="0.01">
+          </label>
+          <p class="ayuda" id="r-umbral-ayuda">
+            Por debajo de este valor, el caso va a revisión humana pase lo que
+            pase.
+          </p>
+
+          <label class="ancho">
+            <span>Canales prioritarios</span>
+            <input type="text" id="r-canales" placeholder="separados con coma">
+          </label>
+          <p class="ayuda">
+            Canales de origen que elevan la prioridad a <em>Prioritario</em>.
+            No vuelven urgente un documento por sí solos.
+          </p>
+        </form>
+      </div>
+
+      <div class="columna">
+        <h3>Destinos por tipo de documento</h3>
+        <p class="ayuda">
+          Un tipo sin destino <strong>escala a revisión humana</strong>. Es la
+          forma de desactivar una ruta automática.
+        </p>
+
+        <form id="form-destinos"></form>
+
+        <label class="ancho clave">
+          <span>Clave de administración</span>
+          <input type="password" id="r-clave" placeholder="para poder guardar"
+                 autocomplete="current-password">
+        </label>
+      </div>
+    </div>
+
+    <footer>
+      <span class="aviso" id="reglas-aviso"></span>
+      <div class="acciones">
+        <button type="button" class="secundario" id="cancelar-reglas">Cerrar</button>
+        <button type="button" class="principal" id="guardar-reglas">Guardar reglas</button>
       </div>
     </footer>
 
