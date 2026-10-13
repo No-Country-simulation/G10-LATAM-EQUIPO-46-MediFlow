@@ -10,19 +10,33 @@
 [confianza]
 # Por debajo de este valor, el caso va a revision humana pase lo que pase.
 #
-# CALIBRADO sobre los 30 documentos del corpus (12/10/2026). El barrido de
-# `scripts/evaluar_corpus.py` mostro una separacion limpia:
+# MEDIDO sobre los 30 documentos del corpus, TRES corridas del mismo codigo
+# (12/10/2026). Una primera medicion sugirio una separacion limpia —las
+# correctas entre 0.95 y 1.00, la errada en 0.65— y sobre eso se eligio 0.70.
+# Repetir la corrida mostro que esa separacion no es estable:
 #
-#     las 29 clasificaciones correctas : confianza entre 0.95 y 1.00
-#     la unica errada                  : confianza 0.65
+#     confianza de la clasificacion errada : 0.65 | 0.70 | 0.75
+#     minima entre las correctas           : 0.95 | 0.95 | 0.00
 #
-# Con 0.70 se atrapa el error y NO se manda ni un caso correcto a revision.
-# Cualquier valor entre 0.70 y 0.95 da el mismo resultado; 0.70 queda en el
-# medio del hueco, que es donde conviene estar para que un caso nuevo algo
-# peor que los medidos tampoco se escape.
+# O sea: con 0.70, el error se atrapo en UNA de las tres corridas. Y en una
+# de ellas un documento BIEN clasificado salio con confianza 0.00, asi que
+# tampoco es cierto que ningun caso correcto vaya a revision.
 #
-# El numero ya no es una propuesta: esta respaldado. Si el corpus crece,
-# volver a correr el barrido antes de moverlo.
+# Lo que la evidencia si sostiene:
+#
+#   - 0.80 atrapa la clasificacion errada en las tres corridas, al costo de
+#     mandar un caso correcto a revision en una de ellas.
+#   - La deteccion de urgencia NO depende de este umbral y dio 0 falsos
+#     negativos en las tres corridas. Una clasificacion errada no puede
+#     hacer que un documento urgente deje de ir a emergencia.
+#
+# 0.70 se mantiene como valor entregado porque mover el punto de operacion
+# de un sistema clinico es una decision del equipo, no del barrido. Si se
+# prioriza atrapar errores de clasificacion por encima de ahorrar revisiones
+# humanas, el numero respaldado es 0.80.
+#
+# Una sola corrida de un modelo no determinista no alcanza para afirmar nada
+# sobre un margen de centesimas: correr el barrido al menos tres veces.
 umbral = 0.70
 
 [urgencia]
