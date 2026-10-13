@@ -338,7 +338,9 @@ def evaluar(simulado: bool) -> int:
     print("  Subirlo atrapa mas errores pero manda mas casos buenos a un")
     print("  humano. Bajarlo deja pasar errores. Estos son los numeros.\n")
 
-    from mediflow_agent.routing.baseline import UMBRAL_CONFIANZA
+    from mediflow_agent.routing.baseline import umbral_configurado
+
+    configurado = umbral_configurado()
 
     correctos = [c for _, c, ok in confianzas if ok]
     errados = [c for _, c, ok in confianzas if not ok]
@@ -363,7 +365,7 @@ def evaluar(simulado: bool) -> int:
     for umbral in (0.50, 0.60, 0.70, 0.80, 0.90, 0.95):
         atrapados = sum(1 for c in errados if c < umbral)
         molestados = sum(1 for c in correctos if c < umbral)
-        marca = "  <-- el configurado" if abs(umbral - UMBRAL_CONFIANZA) < 0.001 else ""
+        marca = "  <-- el configurado" if abs(umbral - configurado) < 0.001 else ""
         print(
             f"    {umbral:7.2f}  {atrapados:>8} de {len(errados):<7}"
             f"  {molestados:>8} de {len(correctos):<7}{marca}"

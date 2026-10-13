@@ -50,7 +50,7 @@ La clave se saca gratis en [aistudio.google.com](https://aistudio.google.com) �
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-**Esperado:** `299 passed`.
+**Esperado:** `318 passed`.
 
 Si falla algo acá, parar. El resto de las pruebas no tiene sentido.
 
@@ -246,28 +246,63 @@ día de anticipación. Es donde aparecen los problemas de instalación.
 
 ---
 
-## Prueba 8 · Las reglas configurables
+## Prueba 8 · Las reglas configurables desde la pantalla
 
 **Qué valida:** el diferencial del enunciado — que un gestor hospitalario
-cambie el triaje sin tocar el código fuente.
+cambie el triaje sin tocar el código fuente. **Es la prueba que conviene
+mostrar en vivo**, porque se ve entera en la pantalla.
 
-Abrí `agente\config\triaje.toml` y en la sección `[destinos]` cambiá:
+Antes de levantar la aplicación, en el `.env`:
 
-```toml
-receta_medica = "Auditoria_Autorizaciones"
+```env
+MEDIFLOW_ADMIN_CLAVE=lo-que-quieras-mientras-sea-largo
 ```
 
-Reiniciá la aplicación y volvé a triar una receta.
+> Si además tenés `MEDIFLOW_UMBRAL_CONFIANZA` en el `.env`, **quitala**. Gana
+> sobre el archivo y dejaría el umbral bloqueado. El panel te lo avisa, pero
+> es una pregunta menos del jurado.
 
-**Esperado:** el destino pasa de `Farmacia_Hospitalaria` a
-`Auditoria_Autorizaciones`, sin haber tocado una línea de Python.
+Arrancá y apretá **Reglas de triaje**, arriba a la derecha.
 
-Después dejalo como estaba.
+### 8.1 — Sin la clave no se guarda
 
-**Probá también lo contrario:** borrá esa línea entera. La receta tiene que ir
-a **Cola de Revisión Humana**, no a un destino por defecto. Es la forma que
-tiene el gestor de desactivar una ruta automática.
+Dejá el campo *Clave de administración* vacío y apretá **Guardar reglas**.
 
+**Esperado:** `Clave incorrecta.` y nada cambia.
+
+### 8.2 — Cambiar un destino
+
+Poné la clave. En **Receta médica** elegí *Auditoría de Autorizaciones* y
+guardá. Cerrá el panel y triá una receta.
+
+**Esperado:** va a Auditoría de Autorizaciones en vez de Farmacia, **sin
+reiniciar nada**.
+
+### 8.3 — Quitar una ruta
+
+Volvé a abrir el panel y en **Receta médica** elegí
+*— sin ruta: va a revisión humana —*. Guardá y triá otra receta.
+
+**Esperado:** va a **Cola de Revisión Humana**, con la justificación diciendo
+que ese tipo no tiene ruta asignada. Es la forma que tiene el gestor de
+desactivar una ruta automática hacia un destino que todavía no está listo
+para recibir documentos sin supervisión.
+
+Después dejá todo como estaba.
+
+### 8.4 — Sin clave en el servidor, solo lectura
+
+Sacá `MEDIFLOW_ADMIN_CLAVE` del `.env`, reiniciá y abrí el panel.
+
+**Esperado:** los campos aparecen apagados, no hay botón de guardar, y arriba
+dice *"Solo lectura: no hay clave de administración en el servidor"*.
+
+### 8.5 — Lo que el panel no deja hacer
+
+Con la clave puesta, probá un umbral de `1.5`.
+
+**Esperado:** lo rechaza. Se valida **antes** de escribir, así que el archivo
+nunca queda en un estado que el agente no pueda leer.
 ---
 
 ## Prueba 9 · La alerta de guardia

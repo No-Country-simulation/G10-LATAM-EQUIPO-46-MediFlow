@@ -46,22 +46,40 @@ from mediflow_agent.serialization.contract import (
 
 _log = logging.getLogger(__name__)
 
-# Por debajo de esta confianza, el caso va a revision humana pase lo que pase.
-# La evidencia detras del valor, y sus limites, estan en `config/triaje.toml`.
-# Configurable por entorno para poder moverlo sin tocar codigo.
-UMBRAL_CONFIANZA = ajuste(
-    "confianza", "umbral", 0.70, "MEDIFLOW_UMBRAL_CONFIANZA"
-)
+# Las tres reglas configurables se leen en CADA decision, no al importar el
+# modulo. Es lo que hace que un cambio desde la pantalla de configuracion
+# tenga efecto en el documento siguiente: si se leyeran una vez al arrancar,
+# la pantalla mostraria un valor y el agente usaria otro hasta el proximo
+# reinicio. `cargar_archivo` solo vuelve a parsear el TOML cuando cambio su
+# fecha, asi que el costo por documento es un `stat` del sistema de archivos.
 
-# Canales que, por si solos, elevan la prioridad. Que un documento venga de
-# guardia es una senal, no una prueba: sube a Prioritario, no a Urgente.
-CANALES_PRIORITARIOS = frozenset(
-    ajuste(
-        "urgencia",
-        "canales_prioritarios",
-        ["guardia_emergencias", "urgencias", "emergencias"],
+UMBRAL_POR_DEFECTO = 0.70
+
+CANALES_POR_DEFECTO = ("guardia_emergencias", "urgencias", "emergencias")
+
+
+def umbral_configurado() -> float:
+    """Por debajo de esto, el caso va a revision humana pase lo que pase.
+
+    La evidencia detras del valor, y sus limites, estan en
+    `config/triaje.toml`.
+    """
+    return float(
+        ajuste(
+            "confianza", "umbral", UMBRAL_POR_DEFECTO, "MEDIFLOW_UMBRAL_CONFIANZA"
+        )
     )
-)
+
+
+def canales_prioritarios() -> frozenset[str]:
+    """Canales que, por si solos, elevan la prioridad.
+
+    Que un documento venga de guardia es una senal, no una prueba: sube a
+    Prioritario, no a Urgente.
+    """
+    return frozenset(
+        ajuste("urgencia", "canales_prioritarios", list(CANALES_POR_DEFECTO))
+    )
 
 # Destino por tipo de documento, segun el grafo de decision del README.
 # Marca que el transcriptor multimodal deja donde no pudo leer. Su presencia
@@ -120,7 +138,7 @@ def destinos_configurados(ruta=None) -> dict[str, DestinoEnrutamiento]:
     return mapa
 
 
-DESTINO_POR_TIPO: dict[str, DestinoEnrutamiento] = destinos_configurados()
+
 
 
 def _normalizar(texto: str) -> str:
@@ -147,7 +165,7 @@ def decidir_enrutamiento(
     clasificacion: ClassificationResult,
     datos: ExtractedData,
     canal_origen: str,
-    umbral_confianza: float = UMBRAL_CONFIANZA,
+    umbral_confianza: float | None = None,
     documento: DocumentoNormalizado | None = None,
     llm: object | None = None,
     especifico: object | None = None,
@@ -165,8 +183,14 @@ def decidir_enrutamiento(
     # respondia "urgente". Los campos extraidos quedan como respaldo para
     # cuando no hay documento (por ejemplo al llamar al grafo desde una
     # prueba).
+    # El umbral llega por parametro solo en las pruebas y en los scripts de
+    # evaluacion. En la aplicacion llega None y se lee del archivo, para que
+    # un cambio desde la pantalla valga desde el documento siguiente.
+    if umbral_confianza is None:
+        umbral_confianza = umbral_configurado()
+
     texto = (documento.texto if documento else "") or _texto_clinico(datos)
-    canal_prioritario = _normalizar(canal_origen) in CANALES_PRIORITARIOS
+    canal_prioritario = _normalizar(canal_origen) in canales_prioritarios()
     nombre_paciente = datos.patient.name or "paciente sin identificar"
 
     # ---- 1. Urgencia. Corre primero y gana sobre todo lo demas. -----------
@@ -273,7 +297,7 @@ def decidir_enrutamiento(
         )
 
     # ---- 5. Destino segun el tipo. Un tipo sin ruta escala. ---------------
-    destino = DESTINO_POR_TIPO.get(clasificacion.document_type)
+    destino = destinos_configurados().get(clasificacion.document_type)
 
     if destino is None:
         # Categoria nueva sin ruta asignada. No se inventa un destino: se

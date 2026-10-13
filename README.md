@@ -103,7 +103,7 @@ cortó y hay que investigarlo.
 | Integración con el modelo | LangChain, con salida estructurada por Pydantic |
 | Grafo de decisión     | Python puro, bifurcaciones explícitas |
 | Validación de datos   | Pydantic v2                         |
-| Pruebas               | Pytest — 299                        |
+| Pruebas               | Pytest — 318                        |
 | API                   | FastAPI + uvicorn                   |
 | Interfaz de triaje    | Página web propia (HTML, CSS y JS sin framework) |
 | Lectura de PDF        | pypdfium2; escaneos e imágenes se transcriben con Gemini |
@@ -114,7 +114,7 @@ Dos decisiones que conviene explicar, porque el enunciado sugiere otra cosa:
 
 - **El grafo es Python puro, no LangGraph.** El enunciado admite las tres vías
   —LangGraph, n8n o *"pipeline condicional en Python con bifurcaciones"*— y la
-  tercera permite que el grafo sea una función sin estado, con 299 pruebas que
+  tercera permite que el grafo sea una función sin estado, con 318 pruebas que
   recorren sus ramas sin levantar nada ni llamar al modelo. Esa testabilidad
   pesó más que el framework.
 - **La interfaz no es Streamlit ni Gradio.** El enunciado las sugiere pero
@@ -123,9 +123,34 @@ Dos decisiones que conviene explicar, porque el enunciado sugiere otra cosa:
 
 ## Reglas de triaje configurables
 
-El gestor hospitalario cambia el comportamiento del agente editando
-[`agente/config/triaje.toml`](agente/config/triaje.toml), **sin tocar el código
-fuente ni reconstruir la imagen**:
+El gestor hospitalario cambia el comportamiento del agente **desde la propia
+pantalla**, con el botón *Reglas de triaje* de la barra superior: umbral de
+confianza, canales prioritarios y el destino de cada tipo de documento. El
+cambio rige **desde el documento siguiente**, sin reiniciar el servicio.
+
+
+### Quién puede cambiarlas
+
+Ver las reglas es libre. **Guardarlas exige una clave**, porque la página está
+abierta a internet sin contraseña y, sin eso, cualquiera con el enlace podría
+poner el umbral en cero y desactivar la revisión humana de todo el sistema.
+
+```env
+MEDIFLOW_ADMIN_CLAVE=<una cadena larga y al azar>
+```
+
+Sin esa variable, el panel queda en **solo lectura**: se ve la configuración
+vigente pero no se puede tocar. No hay clave por defecto a propósito — una
+clave por defecto es no tener clave, con la desventaja de parecer que sí.
+
+La clave no se guarda en el navegador: se escribe, viaja en la cabecera del
+pedido y se borra al cerrar el panel.
+
+### O editando el archivo
+
+Lo mismo se puede hacer en
+[`agente/config/triaje.toml`](agente/config/triaje.toml), que es la fuente de
+verdad que la pantalla escribe:
 
 | Sección | Qué controla |
 |---------|--------------|
@@ -135,6 +160,12 @@ fuente ni reconstruir la imagen**:
 | `[rendimiento]` | Límites de ritmo contra la cuota del modelo |
 
 Precedencia: variable de entorno, luego archivo, luego valor por defecto.
+
+> **Cuidado con `MEDIFLOW_UMBRAL_CONFIANZA`.** Si está puesta en el `.env`,
+> gana sobre el archivo: la pantalla guardaría el valor nuevo y el agente
+> seguiría usando el del entorno. El panel detecta ese caso y marca el campo
+> como bloqueado, explicando por qué, en lugar de mentir. Para poder moverlo
+> desde la web, quitá esa variable del `.env` del servidor.
 
 Un tipo de documento que no figure en `[destinos]` **se queda sin ruta
 automática y escala a revisión humana**. Es a propósito: así se desactiva un
@@ -193,7 +224,7 @@ abre con doble clic una vez que clonaste el repositorio.
 
 | Qué | Cómo |
 |-----|------|
-| Nada se rompió | `pytest -q` en `agente/` — 299 pruebas, sin llamar al modelo |
+| Nada se rompió | `pytest -q` en `agente/` — 318 pruebas, sin llamar al modelo |
 | Qué tan bien acierta | `python scripts/evaluar_corpus.py` sobre 30 documentos etiquetados |
 | Que ningún urgente se escape | `python scripts/evaluar_urgencia.py` sobre 95 frases clínicas |
 

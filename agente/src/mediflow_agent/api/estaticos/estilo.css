@@ -548,3 +548,83 @@ code, .mono, pre { font-family: "IBM Plex Mono", ui-monospace, monospace; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* ===================== reglas de triaje ===================== */
+
+.boton-reglas {
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 7px;
+  padding: 5px 11px;
+  font-size: 12px;
+  color: var(--tinta-media);
+  cursor: pointer;
+  margin-right: 6px;
+}
+
+.boton-reglas:hover {
+  border-color: var(--acento);
+  color: var(--tinta);
+}
+
+/* El panel de reglas es mas angosto que el de auditoria: no muestra un
+   documento al lado, solo dos columnas de campos. */
+.auditoria.reglas { width: min(760px, 100%); }
+
+#form-reglas label,
+#form-destinos label {
+  display: flex; flex-direction: column; gap: 4px;
+  min-width: 0; margin-bottom: 12px;
+}
+
+#form-reglas span,
+#form-destinos span {
+  font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--tinta-debil);
+}
+
+#form-reglas input,
+#form-destinos select {
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 7px;
+  padding: 7px 9px;
+  font-size: 13px;
+  min-width: 0;
+}
+
+#form-reglas input:focus,
+#form-destinos select:focus { border-color: var(--acento); outline: none; }
+
+/* Un campo deshabilitado tiene que LEERSE como deshabilitado: si no, el
+   gestor cree que escribio un valor que el sistema nunca recibio. */
+#form-reglas input:disabled,
+#form-destinos select:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+  background: transparent;
+}
+
+/* Un tipo sin destino escala a revision humana. Se pinta con el color de
+   revision para que esa consecuencia se vea sin leer la ayuda. */
+#form-destinos select:not(:disabled) option[value=""] { color: var(--revision); }
+
+.auditoria.reglas .clave { margin-top: 18px; }
+
+.auditoria.reglas .clave input {
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 7px;
+  padding: 7px 9px;
+  font-size: 13px;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.auditoria.reglas .clave input:focus { border-color: var(--acento); outline: none; }
+
+/* En pantalla angosta se achica, pero NO se oculta: es la unica puerta al
+   panel de reglas, y esconderla dejaria el diferencial sin demostrar en un
+   telefono. */
+@media (max-width: 760px) {
+  .boton-reglas { padding: 4px 8px; font-size: 11px; margin-right: 4px; }
+}

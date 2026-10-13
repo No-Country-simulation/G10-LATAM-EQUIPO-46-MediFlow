@@ -65,8 +65,19 @@ from pathlib import Path  # noqa: E402
 ARCHIVO_TRIAJE = Path(__file__).resolve().parent.parent.parent / "config" / "triaje.toml"
 
 
+# Lo ultimo leido de cada archivo, junto con la fecha que tenia al leerlo.
+# Sin esto habria que abrir y parsear el TOML en cada documento que entra;
+# con esto se vuelve a leer solo cuando el archivo cambio de verdad.
+_CACHE: dict[Path, tuple[float, dict]] = {}
+
+
 def cargar_archivo(ruta: Path | None = None) -> dict:
     """Lee `config/triaje.toml`. Devuelve {} si no existe o esta roto.
+
+    Relee el archivo cuando cambia su fecha de modificacion. Eso es lo que
+    permite que un gestor cambie una regla de triaje y que el cambio tenga
+    efecto en el proximo documento, sin reiniciar el servicio: si esto se
+    leyera una sola vez al arrancar, la pantalla de configuracion mentiria.
 
     Un archivo de configuracion ausente o mal escrito NO puede impedir que el
     sistema triee documentos: se cae a los valores por defecto y se sigue.
@@ -75,19 +86,42 @@ def cargar_archivo(ruta: Path | None = None) -> dict:
     """
     archivo = ruta or ARCHIVO_TRIAJE
 
-    if not archivo.is_file():
+    try:
+        marca = archivo.stat().st_mtime
+    except OSError:
+        _CACHE.pop(archivo, None)
         return {}
+
+    recordado = _CACHE.get(archivo)
+
+    if recordado is not None and recordado[0] == marca:
+        return recordado[1]
 
     try:
         with open(archivo, "rb") as fh:
-            return tomllib.load(fh)
+            contenido = tomllib.load(fh)
     except (tomllib.TOMLDecodeError, OSError):
         import logging
 
         logging.getLogger(__name__).warning(
             "No se pudo leer %s; se usan los valores por defecto.", archivo
         )
+        # Se recuerda el fallo para no reintentar el parseo en cada documento
+        # mientras el archivo siga roto.
+        _CACHE[archivo] = (marca, {})
         return {}
+
+    _CACHE[archivo] = (marca, contenido)
+
+    return contenido
+
+
+def olvidar_archivo(ruta: Path | None = None) -> None:
+    """Descarta lo recordado. Para las pruebas y tras escribir el archivo."""
+    if ruta is None:
+        _CACHE.clear()
+    else:
+        _CACHE.pop(ruta, None)
 
 
 def ajuste(seccion: str, clave: str, defecto, variable_entorno: str | None = None):
