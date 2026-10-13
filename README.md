@@ -103,7 +103,7 @@ cortó y hay que investigarlo.
 | Integración con el modelo | LangChain, con salida estructurada por Pydantic |
 | Grafo de decisión     | Python puro, bifurcaciones explícitas |
 | Validación de datos   | Pydantic v2                         |
-| Pruebas               | Pytest — 287                        |
+| Pruebas               | Pytest — 299                        |
 | API                   | FastAPI + uvicorn                   |
 | Interfaz de triaje    | Página web propia (HTML, CSS y JS sin framework) |
 | Lectura de PDF        | pypdfium2; escaneos e imágenes se transcriben con Gemini |
@@ -114,7 +114,7 @@ Dos decisiones que conviene explicar, porque el enunciado sugiere otra cosa:
 
 - **El grafo es Python puro, no LangGraph.** El enunciado admite las tres vías
   —LangGraph, n8n o *"pipeline condicional en Python con bifurcaciones"*— y la
-  tercera permite que el grafo sea una función sin estado, con 287 pruebas que
+  tercera permite que el grafo sea una función sin estado, con 299 pruebas que
   recorren sus ramas sin levantar nada ni llamar al modelo. Esa testabilidad
   pesó más que el framework.
 - **La interfaz no es Streamlit ni Gradio.** El enunciado las sugiere pero
@@ -193,7 +193,7 @@ abre con doble clic una vez que clonaste el repositorio.
 
 | Qué | Cómo |
 |-----|------|
-| Nada se rompió | `pytest -q` en `agente/` — 287 pruebas, sin llamar al modelo |
+| Nada se rompió | `pytest -q` en `agente/` — 299 pruebas, sin llamar al modelo |
 | Qué tan bien acierta | `python scripts/evaluar_corpus.py` sobre 30 documentos etiquetados |
 | Que ningún urgente se escape | `python scripts/evaluar_urgencia.py` sobre 95 frases clínicas |
 

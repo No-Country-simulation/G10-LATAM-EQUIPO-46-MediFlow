@@ -50,7 +50,7 @@ La clave se saca gratis en [aistudio.google.com](https://aistudio.google.com) �
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-**Esperado:** `272 passed`.
+**Esperado:** `299 passed`.
 
 Si falla algo acá, parar. El resto de las pruebas no tiene sentido.
 
@@ -243,3 +243,60 @@ siguiente**.
 
 **Probá el flujo completo en la máquina con la que vayas a presentar**, con un
 día de anticipación. Es donde aparecen los problemas de instalación.
+
+---
+
+## Prueba 8 · Las reglas configurables
+
+**Qué valida:** el diferencial del enunciado — que un gestor hospitalario
+cambie el triaje sin tocar el código fuente.
+
+Abrí `agente\config\triaje.toml` y en la sección `[destinos]` cambiá:
+
+```toml
+receta_medica = "Auditoria_Autorizaciones"
+```
+
+Reiniciá la aplicación y volvé a triar una receta.
+
+**Esperado:** el destino pasa de `Farmacia_Hospitalaria` a
+`Auditoria_Autorizaciones`, sin haber tocado una línea de Python.
+
+Después dejalo como estaba.
+
+**Probá también lo contrario:** borrá esa línea entera. La receta tiene que ir
+a **Cola de Revisión Humana**, no a un destino por defecto. Es la forma que
+tiene el gestor de desactivar una ruta automática.
+
+---
+
+## Prueba 9 · La alerta de guardia
+
+**Qué valida:** que la notificación se entrega de verdad, no solo se escribe
+en el JSON.
+
+Hace falta un webhook. El más rápido es uno de Discord: en cualquier canal,
+*Editar canal → Integraciones → Webhooks → Nuevo webhook → Copiar URL*.
+
+En el `.env`:
+
+```env
+MEDIFLOW_ALERTA_WEBHOOK=<la URL copiada>/slack
+```
+
+> El `/slack` del final es necesario para que Discord entienda el formato.
+> **Esa URL es una credencial**: quien la tenga puede publicar en el canal. No
+> la subas al repositorio ni la pegues en un canal público.
+
+Reiniciá y cargá el ejemplo de **Urgencia**.
+
+**Esperado:** el mensaje aparece en el canal en menos de dos segundos.
+
+**Probá también que un canal caído no rompe nada:** poné una URL inventada
+(`https://no-existe.invalido/hook`) y volvé a triar. El triaje tiene que
+completarse igual, con el documento guardado en el bucket, y el fallo queda
+solo en los logs:
+
+```powershell
+docker compose -f infrastructure/docker-compose.yml logs --tail 20
+```
