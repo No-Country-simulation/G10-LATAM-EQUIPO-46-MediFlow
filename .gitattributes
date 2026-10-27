@@ -1,0 +1,7 @@
+# Git no debe tocar los saltos de linea de un binario: al clonar en otra
+# maquina convertiria LF en CRLF dentro del archivo y lo dejaria ilegible.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.mp3 binary
