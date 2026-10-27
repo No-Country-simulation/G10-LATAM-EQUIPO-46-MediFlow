@@ -17,10 +17,19 @@ Los modelos que razonan antes de responder tardan dos minutos. En triaje de
 urgencias eso es inaceptable: el objetivo del proyecto es resolver un
 documento en 10 segundos o menos. Los "lite" entran con un margen enorme.
 
-La contrapartida es que un modelo mas chico puede acertar menos. Esa parte
-**todavia no esta medida**: se mide con `scripts/evaluar_corpus.py` sobre los
-30 documentos etiquetados. Si la exactitud no alcanza, el camino es subir a un
-modelo mayor sin pasarse del presupuesto de tiempo, no resignar el tiempo.
+La contrapartida es que un modelo mas chico puede acertar menos. Eso se
+midio con `scripts/evaluar_corpus.py` sobre los 30 documentos etiquetados, en
+**tres corridas independientes** (el modelo no es determinista y una sola
+medicion no alcanza para afirmar nada):
+
+    clasificacion            29 de 30
+    cobertura de campos      97.2 % - 99.3 %
+    campos inventados        0 - 3
+    falsos negativos de urgencia   0 en las tres corridas
+
+El modelo "lite" alcanza, asi que no hubo que subir. Si en algun momento no
+alcanzara, el camino es subir a un modelo mayor sin pasarse del presupuesto
+de tiempo, no resignar el tiempo.
 
 Se puede cambiar sin tocar codigo con la variable GEMINI_MODEL.
 Para ver que modelos admite una clave: `python scripts/listar_modelos.py`.
